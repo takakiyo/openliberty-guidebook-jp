@@ -9,7 +9,7 @@ Open Libertyの日本語ガイドブックを提供するプロジェクトで�
 - 開発環境のセットアップ: JDK，Liberty Tools，Open Liberty
 - Hello, Open Liberty: 最初のプログラム
 - Open Libertyのディレクトリ構成
-- Open Libertyの構成ファイル
+- [Open Libertyの構成ファイル](docs/config.mf)
 - Open LibertyのMavenプロジェクト構成
 - Java EEの基本: ServletとJSP
 - Webアプリケーションの開発: Java Server Faces (JSF)
