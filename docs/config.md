@@ -49,7 +49,7 @@ schemaGen  --locale=ja_JP /path/to/schema.xsd
 - `my_env_var1`
 - `MY_ENV_VAR1`
 
-環境変数`VARIABLE_SOURCE_DIRS`は変数を定義するファイルを格納するディレクトリを指定します。複数のディレクトリを指定するには，Windows環境では`;`で，そのほかの環境では`:`で区切って指定します。この環境変数が設定されていなかった場合には，デフォルトで`${server.config.dir}/variables`ディレクトリが使用されます。
+環境変数`VARIABLE_SOURCE_DIRS`は変数を定義するファイルを格納するディレクトリを指定します。複数のディレクトリを指定するときには，Windows環境では`;`で，そのほかの環境では`:`で区切って指定します。この環境変数が設定されていなかった場合には，デフォルトで`${server.config.dir}/variables`ディレクトリが使用されます。
 
 これらのディレクトリにファイルを置いた場合，ファイル名が変数名として利用されます。値はファイルに記述された内容です。たとえば`httpPort`というファイルに`8080`という内容が保存されていた場合，`${httpPort}`という変数は`8080`になります。
 
@@ -60,7 +60,7 @@ httpPort=9080
 httpsPort=9443
 ```
 
-Libertyの起動コマンドでも`--`につづけて変数を指定することができます。たとえば`start`アクションでサーバーを起動する際に，以下のように変数を指定したとします。
+Libertyの起動時のコマンドラインでも`--`につづけて変数を指定することができます。たとえば`start`アクションでサーバーを起動する際に，以下のように変数を指定したとします。
 
 ```
 server start myserver -- -httpPort=10080
@@ -127,11 +127,147 @@ securityUtility encode MY_PASSWORD
    <containerAuthData user="db2inst1" password="${db2password}" />
 ```
 
+{% note %}
+
+難読化のアルゴリズムにAESを指定することもできます。
+
+```
+securityUtility encode　--encoding=aes  MY_PASSWORD
+```
+
+AESの変換の際の鍵をデフォルトから変更する場合は，以下のように鍵を指定して難読化します。
+
+```
+securityUtility encode　--encoding=aes --key=MY_AES_KEY MY_PASSWORD
+```
+
+鍵をデフォルトから変更した場合は，Libertyがパスワードを解読できるように変数`wlp.password.encryption.key`で鍵を指定します。
+
+``` xml
+<variable name="wlp.password.encryption.key" value="MY_AES_KEY" />
+```
+
+このファイルはアクセスを制限できる場所に配置し，後述する`<include>`で構成ファイルに取り込むようにします。
+{% endnote %}
+
+
 #### 他のファイルの読み込み
 
-#### 設定のマージ
+`<include>`要素で`server.xml`から他のファイルを読み込むことができます。読み込み先のファイルの内容が`<include>`の場所に展開されます。
+
+`location`属性に読み込みファイルを相対パスで記述すると，元のファイルからの相対パス，${server.config.dir}からの相対パスが検索されます。
+
+``` xml
+<include location="sessiondb.xml" />
+```
+
+変数などを使用した絶対パスでの記述がおすすめです。
+
+``` xml
+<include location="${shared.config.dir}/sessiondb.xml" />
+```
+
+読み込むファイルが存在しないとエラーとなります。存在するときにだけ読み込む場合には`optional`属性を設定します。
+
+``` xml
+<include location="${shared.config.dir}/sessiondb.xml" optional="true" />
+```
+
+`location`属性にディレクトリを指定すると，そのディレクトリにある全てのXMLファイルが読み込まれます。サブレディレクトリにあるXMLファイルは読み込まれません。
+
+``` xml
+<include location="${shared.config.dir}/commons/" />
+```
+
+`location`属性にはURLも指定することができます。
+
+``` xml
+<include location="https://server.example.com/config/sessiondb.xml" />
+```
+
+以下のディレクトリにXMLファイルが存在していると，自動的に読み込まれて`server.xml`の構成に追加されます。
+
+- `${server.config.dir}/configDropins/defaults/` にあるXMLファイル
+  - server.xmlより先に読み込まれる
+  - 同じ設定項目がある場合には，`server.xml`が優先される
+- `${server.config.dir}/configDropins/overrides/` にあるXMLファイル
+  - server.xmlより後に読み込まれる
+  - 同じ設定項目がある場合には，構成は上書きされる
+
+#### 構成のマージ
+
+構成ファイルは`<include>`や`configDropins`などにより複数のファイルに分けて構成できるため，同じ構成が複数のファイルに記述されることがあります。このような状況では，構成は一定のルールに従ってマージされます。
+
+Libertyの構成には，何らかの管理オブジェクトを生成するFactory構成と，サーバー上の唯一の管理オブジェクトを設定するSingleton構成があります。'<webApplication>'や`<httpEndpoint>`，`<keyStore>`，`<dataSource>`，`<library>`などがFactory構成です。`<logging>`や`<quickStartSecurity>`，`<applicationManager>`などがSingleton構成です。
+
+Factory構成は，複数回記述された場合もそれぞれが有効になります。下記の例ではWebアプリケーションは二つ，Liberty上に定義されることになります。
+
+``` xml
+<webApplication location="myapp.war" />
+<webApplication location="myapp2.war" />
+```
+
+既存のFactory構成を上書きするには，`id`属性を指定して同一のオブジェクトである事を明示化します。
+
+``` xml
+<webApplication id="myapp" location="myapp.war" contextRoot="/myawesomeapp" />
+<webApplication id="myapp" location="myapp2.war" />
+```
+
+同じIDをもつFactory構成はマージされ，上記の例は以下の構成と同じ意味になります。同じ属性である`location`はあとから記述されたものが有効になります。
+
+``` xml
+<webApplication id="myapp" location="myapp2.war" contextRoot="/myawesomeapp" />
+```
+
+Singleton構成は，`id`属性の記述がなくても自動的にマージされます。
+
+``` xml
+<logging traceSpecification="*=debug" value="ENHANCED" />
+<logging traceSpecification="openjpa.jdbc.SQL=all" />
+```
+
+上記の例は以下の構成と同じ意味になります。
+
+``` xml
+<logging traceSpecification="openjpa.jdbc.SQL=all" value="ENHANCED" />
+```
+
+Singleton構成が子要素を持つ場合，それらはマージされます。
+
+``` xml
+<featureManager>
+    <feature>servlet-4.0</feature>
+</featureManager>
+<featureManager>
+    <feature>restConnector-2.0</feature>
+</featureManager>
+```
+
+上記の例は以下の構成と同じ意味になります。
+
+``` xml
+<featureManager>
+    <feature>servlet-4.0</feature>
+    <feature>restConnector-2.0</feature>
+</featureManager>
+```
 
 #### server.xmlの動的更新
+
+Libertyの起動中に構成ファイルを変更して保存した場合，変更は即座に反映されます。`server.xml`だけでなく，そこから`<include>`されているファイルや`configDropins`にあるファイルも，変更は検知され動的に反映されます。
+
+この挙動は開発時には非常に便利なのですが，本番環境で変更を動的に反映させたくない場合は，以下の構成を追加します。これによりMBean経由でトリガーされない限り（もしくはLibertyを再起動しない限り）変更は自動で反映されなくなります。
+
+``` xml
+<config updateTrigger="mbean"/>
+```
+
+またアプリケーションの変更も動的に反映されます。これを抑止するには以下の構成を追加します。
+
+``` xml
+<applicationMonitor updateTrigger="mbean" />
+```
 
 ### server.xmlの構成例
 
