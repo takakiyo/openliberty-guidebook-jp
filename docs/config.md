@@ -148,6 +148,7 @@ securityUtility encode　--encoding=aes --key=MY_AES_KEY MY_PASSWORD
 ```
 
 このファイルはアクセスを制限できる場所に配置し，後述する`<include>`で構成ファイルに取り込むようにします。
+
 {% endnote %}
 
 
@@ -161,7 +162,7 @@ securityUtility encode　--encoding=aes --key=MY_AES_KEY MY_PASSWORD
 <include location="sessiondb.xml" />
 ```
 
-変数などを使用した絶対パスでの記述がおすすめです。
+Libertyの導入ディレクトリ内のファイルを読み込む場合は，変数などを使用した絶対パスでの記述がおすすめです。構成ファイルの可搬性を保つことができます。
 
 ``` xml
 <include location="${shared.config.dir}/sessiondb.xml" />
@@ -176,7 +177,7 @@ securityUtility encode　--encoding=aes --key=MY_AES_KEY MY_PASSWORD
 `location`属性にディレクトリを指定すると，そのディレクトリにある全てのXMLファイルが読み込まれます。サブレディレクトリにあるXMLファイルは読み込まれません。
 
 ``` xml
-<include location="${shared.config.dir}/commons/" />
+<include location="/work/wlp/config/" optional="true" />
 ```
 
 `location`属性にはURLも指定することができます。
@@ -214,7 +215,7 @@ Factory構成は，複数回記述された場合もそれぞれが有効にな�
 <webApplication id="myapp" location="myapp2.war" />
 ```
 
-同じIDをもつFactory構成はマージされ，上記の例は以下の構成と同じ意味になります。同じ属性である`location`はあとから記述されたものが有効になります。
+同じIDをもつFactory構成はマージされ，上記の例は以下の構成と同じ意味になります。属性はマージされ，同じ属性である`location`はあとから記述されたものが有効になります。
 
 ``` xml
 <webApplication id="myapp" location="myapp2.war" contextRoot="/myawesomeapp" />
@@ -223,14 +224,14 @@ Factory構成は，複数回記述された場合もそれぞれが有効にな�
 Singleton構成は，`id`属性の記述がなくても自動的にマージされます。
 
 ``` xml
-<logging traceSpecification="*=debug" value="ENHANCED" />
+<logging traceSpecification="*=debug" messageFormat="ENHANCED" />
 <logging traceSpecification="openjpa.jdbc.SQL=all" />
 ```
 
 上記の例は以下の構成と同じ意味になります。
 
 ``` xml
-<logging traceSpecification="openjpa.jdbc.SQL=all" value="ENHANCED" />
+<logging traceSpecification="openjpa.jdbc.SQL=all" messageFormat="ENHANCED" />
 ```
 
 Singleton構成が子要素を持つ場合，それらはマージされます。
@@ -253,6 +254,43 @@ Singleton構成が子要素を持つ場合，それらはマージされます�
 </featureManager>
 ```
 
+#### 構成のネストとIDによる参照
+
+構成ファイルに設定する要素の中には，他の要素の設定を参照するものがあります。たとえば，DataSourceの構成にはJDBC Driverの構成が必要ですし，JDBC Driverの構成には実装を提供するライブラリの構成が必要です。
+
+これらの前提となる要素は，IDを付加して，そのIDを使って参照することができます。
+
+``` xml
+<dataSource jndiName="jdbc/myDS" 
+    jdbcDriverRef="derbyDriver" />
+
+<jdbcDriver id="derbyDriver"
+    libraryRef="derbyLib" />
+
+<library id="derbyLib"
+    filesetRef="derbyFile" />
+
+<fileset id="derbyFile"
+    dir="${shared.resource.dir}/derby"
+    includes="derby.jar" />
+```
+
+また，要素をネストして定義することも可能です。
+
+``` xml
+<dataSource jndiName="jdbc/myDS">
+    <jdbcDriver>
+        <library>
+            <fileset
+                dir="${shared.resource.dir}/derby"
+                includes="derby.jar" />
+        </library>
+    </jdbcDriver>
+</dataSource>
+```
+
+基本的に，一カ所でしか利用しないものについてはネストで定義し，複数の場所から利用されるものは個別に定義してIDで参照するようにするとよいでしょう。
+
 #### server.xmlの動的更新
 
 Libertyの起動中に構成ファイルを変更して保存した場合，変更は即座に反映されます。`server.xml`だけでなく，そこから`<include>`されているファイルや`configDropins`にあるファイルも，変更は検知され動的に反映されます。
@@ -271,13 +309,269 @@ Libertyの起動中に構成ファイルを変更して保存した場合，変�
 
 ### server.xmlの構成例
 
+``` xml
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="new server">
+    <featureManager>
+        <feature>jsp-2.3</feature>
+        <feature>jaxrs-2.1</feature>
+        <feature>cdi-2.0</feature>
+        <feature>jdbc-4.2</feature>
+    </featureManager>
+
+    <httpEndpoint id="defaultHttpEndpoint" host="*"
+        httpPort="9080" httpsPort="9443" />
+
+    <webApplication location="sample-app.war" contextRoot="/sample-app" />
+    <applicationManager autoExpand="true" />
+
+    <library id="derby_lib">
+        <fileset dir="${shared.resource.dir}/derby" includes="*.jar" />
+    </library>
+    <dataSource jndiName="jdbc/derbyDS" id="derbyDS">
+    	<jdbcDriver libraryRef="derby_lib" />
+        <properties.derby.embedded createDatabase="create"
+            databaseName="${server.output.dir}/workarea/DERBY_DB" />
+    </dataSource>
+</server>
+```
+
 #### Featureの構成
 
-#### アプリケーションの構成
+Libertyで提供されているサーバー機能やアプリケーションから利用できるAPIは，Feature（フィーチャー）というモジュールで提供されています。`server.xml`では利用するFeatureを`<featureManager>`で構成します。デフォルトで有効になるFeatureは「なし」なので，必ず何らかのFeatureを設定する必要があります。
+
+``` xml
+<featureManager>
+    <feature>jsp-2.3</feature>
+    <feature>jaxrs-2.1</feature>
+    <feature>cdi-2.0</feature>
+    <feature>jdbc-4.2</feature>
+</featureManager>
+```
+
+Featureには依存関係が定義されており，前提として必要なFeatureがあると自動的に有効になります。たとえば`jaxrs-2.1` Featureを有効にすると，依存関係にある'jaxrsClient-2.1'，'jsonp-1.1'，'servlet-4.0'も暗黙的に有効になります。
+
+``` xml
+<featureManager>
+    <feature>jaxrs-2.1</feature>
+</featureManager>
+```
+
+この設定で起動したときのメッセージは以下のようになります。
+
+```
+[監査      ] CWWKF0012I: サーバーは次のフィーチャーをインストールしました。[jaxrs-2.1, jaxrsClient-2.1, jsonp-1.1, servlet-4.0]。
+```
+
+この依存関係を利用してConvenience Featureという，特定の仕様群をまとめて有効にするFeatureが定義されています。これらのFeature自身には機能は実装されていませんが，依存関係として関連のFeatureが有効になります。ただし，これらのConvenience Featureを利用するより，アプリケーションで必要なFeatureを個別に指定した方が，サーバーのランタイムを軽く保つことができますので，なるべくなら利用しないようにしましょう。
+
+- Java EE/Jakarta EE仕様をまとめて有効にするもの
+    - `javaee-8.0`，`jakartaee-8.0`，`jakartaee-9.1`，`jakartaee-10.0`など
+- Java EE/Jakarta EEのサブセットであるWeb Profile仕様を有効にするもの
+    - `webProfile-8.0`，`webProfile-9.1`，`webProfile-10.0`など
+- Java EE/Jakarta EEのアプリケーションクライアントをまとめて有効にするもの
+    - `javaeeClient-8.0`，`jakartaeeClient-9.1`，`jakartaeeClient-10.0`など
+- MicroProfile仕様をまとめて有効にするもの
+    - `microProfile-4.0`，`microProfile-4.1`，`microProfile-5.0`，`microProfile-6.0`など
+- EJB（Enterprise JavaBeans）/Jakarta Enterprise Beansを有効にするもの
+    - `ejb-3.2`，`enterpriseBeans-4.0`など
+
+Featureの中には，共存ができず，一つのサーバー構成で同時に有効にできない組み合わせがあります。原則的に，異なるJava EE/Jakarta EEのバージョンに含まれるFeatureどうしは共存できません（例外として，複数のJava EE/Jakarta EEバージョンに含まれるFeatureがあり，それらはどちらのバージョンのFeatureとも共存できます）。また，MicroProfile仕様についても，対応するJava EE/Jakarta EEのバージョンが定義されており，異なるバージョンのFeatureとは共存できないことがあります。
+
+導入されていないFeatureについては，`installUtility`コマンドで追加導入することができます。たとえば，Jakarta EE 10のFeatureを全て追加導入する場合は以下のように実行します。依存関係にあるFeatureもあわせて導入されるため，これで全ての必要なFeatureが導入できます。
+
+```
+installUtility install jakartaee-10.0
+```
+
+また，Feature名のかわりにサーバー名を指定すると，そのサーバーの`server.xml`で定義されている全てのFeatureが（足りなければ）導入されます。
+
+```
+installUtility install defaultServer
+```
+
+`installUtility`コマンドはインターネット上のレポジトリからファイルをダウンロードするので，外部のネットワーク接続が必要です。外部接続にProxyの構成などが必要な場合は，以下のコマンドを実行して画面の指示に従ってください。
+
+```
+installUtility viewSettings
+```
+
+#### Java EE/Jakarta EEアプリケーションの構成
+
+Libertyでアプリケーションが配置されるディレクトリは，主に以下の二カ所になります。
+
+- ${server.config.dir}/dropins
+    - server.xmlなどに定義しなくても，アプリケーションとして実行される
+    - クラスローダーやセキュリティなど，追加の構成はできない
+- ${server.config.dir}/apps
+    — server.xmlなどに定義すると，アプリケーションとして実行される
+    - クラスローダーやセキュリティなど，追加の構成ができる
+
+アプリケーションは，WAR/EARなどのアーカイブファイルを上記のディレクトリに直接おいてもいいですし，`.war`や`.ear`の拡張子を持ったディレクトリを作成して中身を展開して配置することもできます。
+
+図：アーカイブを直接おいた例
+
+図：展開して配置した例
+
+EARファイルは`server.xml`に`<enterpriseApplication>`要素で定義します。`location`属性で相対パスでファイルを指定した場合は`${server.config.dir}/apps`からファイルが検索されます。
+
+``` xml
+<enterpriseApplication location="INVENTRY.ear" />
+```
+
+WARファイルは`server.xml`に`<webApplication>`要素で定義します。`location`属性にくわえ，どのようなURLで呼び出されたときに実行されるのかを`contextRoot`属性で指定します。
+
+``` xml
+<webApplication location="SupportTools.war" contextRoot="/support" />
+```
+
+{% note %}
+
+`contextRoot`属性が指定されたなった場合やdropinsにファイルが置かれたとき，コンテキストルートのデフォルト値は，以下の項目のうち上のものほど優先して利用されます。
+
+- EARファイルの`application.xml`で指定された値
+- WARファイルがibm-web-ext.xmlを含んでいた場合，その`web-ext`要素の`context-root`属性の値
+- `<webApplication>`要素の`name`属性の値
+- WARファイルのファイル名から`.war`を取り除いたもの
+
+ですが，できるだけ`contextRoot`属性で明示的に指定するようにしましょう。
+
+{% endnote %}
+
+`<enterpriseApplication>`や`<webApplication>`には，ネストした子要素として（あるいはIDで参照して）以下のようなものが構成できます。
+
+- `<classloader>`：アプリケーションから参照する外部ライブラリを指定
+- `<application-bnd>`：アプリケーション中の各種参照のバインド先を指定
+    - `<resource-ref>`：アプリケーション中のリソース参照のバインド先を指定
+    - `<security-role>`：アプリケーション中で定義されたセキュリティ・ロールを実際のユーザーやグループにバインド
 
 #### HTTPエンドポイントの構成
 
+LibertyがHTTPリクエストを処理するためにLISTENするエンドポイントの設定を，構成ファイルの`<httpEndpoint>`要素で構成します。
+
+``` xml
+<httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint">
+```
+
+`host`属性が，LibertyがポートをLISTENするさいにバインドするアドレスですが，デフォルトは`localhost`になっています。つまりリモートからの接続はできません。`server create`コマンドで作成したテンプレートの`server.xml`では，基本的に`host`属性は構成されておらず，同じPC内のローカルからしか接続できないようになっています。リモートからも接続できるようにするには`host="*"`を設定します。この部分は実働環境でLibertyを使用する場合に，必ず書き換えないといけない部分なので注意してください。
+
+{% note %}
+
+`<httpEndpoint>`の`host`属性のデフォルトが`localhost`になっているのは二つの理由があります。
+
+一つめはセキュリティの観点からです。Libertyでは，セキュリティに関わる設定は安全な方をデフォルトにする，という原則があります。開発時には，安全なセキュリティ構成を取れているとは限りません。不用意に立ち上げたサーバーが外部から攻撃されて，被害を被ることを防いでいます。
+
+二つめはライセンスの観点からです。Open Libertyはオープンソース化される前はWebSphere Libertyという商用ランタイムとして開発されていました。WebSphere Libertyは開発者用途，つまり開発者が専有利用するPC上で，リモートから接続せずローカルでテスト実行する用途であれば無償で利用できます。`host="*"`が設定されていない状態であれば，ライセンスに違反することなく安全にWebSphere Libertyを使用することができます。
+
+{% endnote %}
+
+ネストした子要素として（あるいはIDで参照して）以下のようなものが構成できます。
+
+- `<tcpOptions>`：TCPレベルの各種設定
+    - ソケットオプションや接続制限など。
+- `<httpOptions>`：HTTPレベルの各種設定
+    - ヘッダの数やサイズの制限，各種タイムアウトや，HTTP/2の設定など。
+- `<accessLogging>`：アクセスログを取得する構成
+    - 設定すると，Libertyでアクセスログを取得できる
+    - ログのフォーマットやサイズによりローテーションなどを構成
+- `<compression>`：レスポンスを自動的に圧縮するための構成
+- `<headers>`：特定のHTTPヘッダーを追加・削除する
+
 #### データベースの構成
+
+アプリケーションから利用する`javax.sql.DataSource`の設定を，構成ファイルの`<dataSource>`要素で構成します。
+
+DataSourceを使用するには，いずれかのバージョンのJDBCのFeatureを有効にする必要があります（JPAのFeatureなどの依存関係として間接的に有効にされることもあります）。
+
+``` xml
+<featureManager>
+    <feature>jdbc-4.2</feature>
+</featureManager>
+```
+
+`<dataSource>`の定義には，JDBC Driverの構成と，データベースのプロパティの構成が必須です。また，`<connectionManager>`要素を追加してコネクションプールの設定を行うことも可能です。
+
+``` xml
+<library id="jdbcLib">
+    <fileset dir="${shared.resource.dir}/jdbc" includes="*.jar"/>
+</library>
+
+<dataSource jndiName="jdbc/myDB">
+    <jdbcDriver libraryRef="jdbcLib"/>
+    <properties serverName="localhost" portNumber="5432"
+                databaseName="myDB"
+                user="exampleUser" password="examplePassword" />
+    <connectionManager maxPoolSize="30" />
+</dataSource>
+```
+
+JDBC Driverの実装を提供するライブラリを指定して`<jdbcDriver>`を定義します。Libertyから利用するJDBC Driverでは，以下の何れかのインターフェースを実装したクラスを提供し，`ServiceLoader`経由でインスタンスを取得できる必要があります。
+
+- javax.sql.DataSource
+- javax.sql.ConnectionPoolDataSource
+- javax.sql.XADataSource
+
+JDBC 4.3以降を有効にしたときには，以下の順でインスタンスが検索されます。
+
+- javax.sql.XADataSource
+- javax.sql.ConnectionPoolDataSource
+- javax.sql.DataSource
+
+JDBC 4.2以前を有効にしたときには，以下の順でインスタンスが検索されます。
+
+- javax.sql.ConnectionPoolDataSource
+- javax.sql.DataSource
+- javax.sql.XADataSource
+
+2-Phase Commitを使用したいなどの目的で，特定のインターフェースのDataSourceが必要な場合は，`<dataSource>`要素の`type`属性で明示的に指定します。また，必要に応じてインターフェースを実装しているクラス名を`<jdbcDriver>`要素の`javax.sql.XADataSource`属性などで指定します。
+
+``` xml
+<dataSource id="myDB" jndiName="jdbc/myDB" type="javax.sql.XADataSource">
+    <jdbcDriver libraryRef="jdbcLib"
+                javax.sql.XADataSource="com.example.jdbc.SampleXADataSource"/>
+    <properties serverName="localhost" portNumber="1234"
+                databaseName="myDB"
+                user="exampleUser" password="examplePassword"/>
+</dataSource>
+```
+
+Libertyが対応している以下のDBMSについては，汎用のプロパティとは別に専用のプロパティが提供されており，いくつかのデフォルト値も適切にセットされるようになっています。
+
+- IBM Db2
+- Microsoft SQL Server
+- PostgreSQL
+- MySQL
+- Embedded Derby
+- Oracle / Oracle UCP / Oracle RAC
+
+たとえば，IBM Db2については，以下のようなプロパティが利用できます。
+
+``` xml
+<properties.db2.jcc serverName="localhost" portNumber="50000"
+            databaseName="test"
+            user="db2inst1" password="foobar1234"/>
+```
+
+また，追加で設定された属性については，パラメーターとしてJDBC Driverに渡されるので，DBMS固有の構成を追加で行うことも可能です。
+
+``` xml
+<dataSource jndiName="jdbc/myDB" jdbcDriverRef="myDriver"/>
+    <properties someProperty="someValue" anotherProperty="5" />
+</dataSource>
+```
+
+Javaアプリケーションからは，アノテーションなどで指定して利用できます。
+
+``` java
+@Resource(lookup = "jdbc/myDB")
+DataSource myDB;
+```
+
+または，`jndi-1.0` Featureを有効にして，JNDI経由でlookupすることも可能です。
+
+``` java
+DataSource myDB = InitialContext.doLookup("jdbc/myDB");
+```
 
 ### server.xml以外の構成ファイル
 
