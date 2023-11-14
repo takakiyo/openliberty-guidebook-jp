@@ -309,6 +309,8 @@ Libertyの起動中に構成ファイルを変更して保存した場合，変�
 
 ### server.xmlの構成例
 
+`server.xml`ファイルの全体像は，たとえば以下のようになります。`<server>`要素の子要素として，各種の設定が記述されています。
+
 ``` xml
 <?xml version="1.0" encoding="UTF-8"?>
 <server description="new server">
@@ -331,7 +333,7 @@ Libertyの起動中に構成ファイルを変更して保存した場合，変�
     <dataSource jndiName="jdbc/derbyDS" id="derbyDS">
     	<jdbcDriver libraryRef="derby_lib" />
         <properties.derby.embedded createDatabase="create"
-            databaseName="${server.output.dir}/workarea/DERBY_DB" />
+            databaseName="${server.output.dir}/logs/DERBY_DB" />
     </dataSource>
 </server>
 ```
@@ -413,6 +415,8 @@ Libertyでアプリケーションが配置されるディレクトリは，主�
 
 図：展開して配置した例
 
+`<applicationManager>`要素の`autoExpand`属性に`true`が設定されていると，アーカイブでデプロイされたアプリケーションは`${server.output.dir}/workarea`以下に自動的に展開されて利用されます。アプリケーションが利用するAPIのなかに，一部アーカイブのままでは正常に動作しないものがあるため，テンプレートで作成される構成ファイルにはこの設定が最初から記述されています。
+
 EARファイルは`server.xml`に`<enterpriseApplication>`要素で定義します。`location`属性で相対パスでファイルを指定した場合は`${server.config.dir}/apps`からファイルが検索されます。
 
 ``` xml
@@ -440,10 +444,12 @@ WARファイルは`server.xml`に`<webApplication>`要素で定義します。`l
 
 `<enterpriseApplication>`や`<webApplication>`には，ネストした子要素として（あるいはIDで参照して）以下のようなものが構成できます。
 
+- `<appProperties>`：アプリケーションから参照できるプロパティを指定
 - `<classloader>`：アプリケーションから参照する外部ライブラリを指定
 - `<application-bnd>`：アプリケーション中の各種参照のバインド先を指定
     - `<resource-ref>`：アプリケーション中のリソース参照のバインド先を指定
     - `<security-role>`：アプリケーション中で定義されたセキュリティ・ロールを実際のユーザーやグループにバインド
+- `<web-ext>`：IBM独自のWebアプリケーション拡張を構成する
 
 #### HTTPエンドポイントの構成
 
@@ -575,9 +581,94 @@ DataSource myDB = InitialContext.doLookup("jdbc/myDB");
 
 ### server.xml以外の構成ファイル
 
+Libertyは，XML形式以外の構成ファイルもいくつか使用します。
+
 #### server.env
+
+LibertyのJavaプロセスで使用される環境変数を定義します。
+
+各行に「環境変数名=値」を記述します。イコールの両側に空白を置いてはいけません。`#`で始まる行はコメントとして無視されます。
+
+``` properties
+# change log output dir
+LOG_DIR=/logs/wlp/server1
+```
+
+ファイル内での環境変数の展開はできません。展開が必要な場合は一行目に`# enable_variable_expansion`というコメントを記述してください。ただ，Windows環境とそれ以外で展開の記述方法が異なるため，この機能を使用すると構成ファイルの可搬性が失われます。
+
+``` properties
+# enable_variable_expansion
+LIBPATH=/work/lib:${LIBPATH}
+```
+
+`server.env`は以下の場所から検索されます。見つかった全ての内容がマージされてJavaプロセスが起動します。同じものが構成されている場合は，下のものほど優先されます。
+
+- `${wlp.install.dir}/etc/server.env`
+    - デフォルト：`wlp/etc/server.env`
+- `${wlp.user.dir}/shared/server.env`
+    - デフォルト：`wlp/usr/shared/server.env`
+- `${server.config.dir}/server.env`
+    - デフォルト：`wlp/usr/servers/サーバー名/server.env`
+
+Libertyの動作を調整する環境変数としては，たとえば以下のようなものがあります。
+
+- `JAVA_HOME`
+    - Libertyを起動するために使用するJava実行環境の場所を設定する
+- `JVM_ARGS`
+    - Libertyを起動するJVMのコマンドライン引数にオプションとして追加する内容を設定
+- `WLP_USER_DIR`
+    - ユーザー構成のディレクトリをデフォルトの`${wlp.user.dir}`から変更する
+    - `server.env`で設定する場合，必ず`${wlp.install.dir}/etc/server.env`で設定しないといけない
+- `VARIABLE_SOURCE_DIRS`
+    - 構成で使用する変数を設定するファイルの場所を指定する
+    - デフォルトは`${server.config.dir}/variables`
+- `WLP_OUTPUT_DIR`
+    - サーバーの出力先をデフォルトの`${server.output.dir}`から変更する
+    - 新しいサーバーの出力先は「`${WLP_OUTPUT_DIR}/サーバー名`」になる
+- `LOG_DIR`
+    - ログの出力先を，デフォルトの`${server.output.dir}/logs`から変更する
+- `SERVER_WORKING_DIR`
+    - 実行中のサーバーのカレントディレクトリをデフォルトの`${server.output.dir}`から変更する
 
 #### jvm.options
 
+Libertyを起動するJVMのコマンドライン引数にオプションとして追加する内容を設定します。
+
+Javaヒープサイズの設定や，Verbose GCの設定などをおこないます。一行にオプションを一つずつ記述します。
+
+```
+-Xmx1600m
+-verbose:gc
+-Xverbosegclog:logs/verbosegc.%Y%m%d.%H%M%S.%pid.log
+```
+
+`jvm.options`は以下の場所から検索されます。見つかった全ての内容が順番にマージされてJavaプロセスが起動します。
+
+- `${wlp.user.dir}/shared/jvm.options`
+- `${server.config.dir}/configDropins/defaults/jvm.options`
+- `${server.config.dir}/jvm.options`
+- `${server.config.dir}/configDropins/overrides/jvm.options`
+
+上記のファイルがいずれも見つからなかった場合には，以下のファイルがあれば使用されます。
+
+- `${wlp.user.dir}/etc/jvm.options`
+
+ログの出力などを記述する場合は，カレントディレクトリからの相対パスで記述するようにします。カレントディレクトリのデフォルトは`${server.output.dir}`ですが，前述の環境変数`SERVER_WORKING_DIR`などで変更することができます。
+
 #### bootstrap.propreties
 
+server.xmlで使用する変数を定義します。現在は環境変数を構成ファイルで参照できるようになったので，以前ほどは利用する機会が少なくなっています。
+
+通常のJavaのプロパティファイルの書式にしたがって記述します。各行に「変数名=値」を記述します。イコールの両側に空白を置いてはいけません。`#`で始まる行はコメントとして無視されます。
+
+``` properties
+com.ibm.ws.logging.trace.specification=*=audit:com.myco.mypackage.*=finest
+```
+
+`bootstrap.propreties`は，`${server.config.dir}/bootstrap.propreties`に配置されます。
+
+`bootstrap.propreties`は`server.xml`が読み込まれるよりも先に，サーバープロセスの起動処理の最初期に読み込まれるため，ログやトレースのフォーマットを指定するために使用されることがあります。たとえば，Libertyを`server run`でフォアグランドで起動したときにコンソールに出力されるメッセージを，タイムスタンプ付きのものにするには，以下のように記述します。
+
+``` properties
+com.ibm.ws.logging.console.format=tbasic
+```
