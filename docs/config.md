@@ -506,7 +506,7 @@ DataSourceを使用するには，いずれかのバージョンのJDBCのFeatur
     <jdbcDriver libraryRef="jdbcLib"/>
     <properties serverName="localhost" portNumber="5432"
                 databaseName="myDB"
-                user="exampleUser" password="examplePassword" />
+                user="exampleUser" password="{xor}Oic+Mi8zOg8+LCwoMC07" />
     <connectionManager maxPoolSize="30" />
 </dataSource>
 ```
@@ -537,7 +537,7 @@ JDBC 4.2以前を有効にしたときには，以下の順でインスタンス
                 javax.sql.XADataSource="com.example.jdbc.SampleXADataSource"/>
     <properties serverName="localhost" portNumber="1234"
                 databaseName="myDB"
-                user="exampleUser" password="examplePassword"/>
+                user="exampleUser" password="{xor}Oic+Mi8zOg8+LCwoMC07"/>
 </dataSource>
 ```
 
@@ -555,7 +555,7 @@ Libertyが対応している以下のDBMSについては，汎用のプロパテ
 ``` xml
 <properties.db2.jcc serverName="localhost" portNumber="50000"
             databaseName="test"
-            user="db2inst1" password="foobar1234"/>
+            user="db2inst1" password="{xor}OTAwPT4tbm1saw=="/>
 ```
 
 また，追加で設定された属性については，パラメーターとしてJDBC Driverに渡されるので，DBMS固有の構成を追加で行うことも可能です。
@@ -566,7 +566,7 @@ Libertyが対応している以下のDBMSについては，汎用のプロパテ
 </dataSource>
 ```
 
-Javaアプリケーションからは，アノテーションなどで指定して利用できます。
+こうして構成したDataSourceは，Javaアプリケーションからアノテーションなどで指定して利用できます。
 
 ``` java
 @Resource(lookup = "jdbc/myDB")
