@@ -380,22 +380,22 @@ Featureには依存関係が定義されており，前提として必要なFeat
 
 Featureの中には，共存ができず，一つのサーバー構成で同時に有効にできない組み合わせがあります。原則的に，異なるJava EE/Jakarta EEのバージョンに含まれるFeatureどうしは共存できません（例外として，複数のJava EE/Jakarta EEバージョンに含まれるFeatureがあり，それらはどちらのバージョンのFeatureとも共存できます）。また，MicroProfile仕様についても，対応するJava EE/Jakarta EEのバージョンが定義されており，異なるバージョンのFeatureとは共存できないことがあります。
 
-導入されていないFeatureについては，`installUtility`コマンドで追加導入することができます。たとえば，Jakarta EE 10のFeatureを全て追加導入する場合は以下のように実行します。依存関係にあるFeatureもあわせて導入されるため，これで全ての必要なFeatureが導入できます。
+導入されていないFeatureについては，`featureUtility`コマンドで追加導入することができます。たとえば，Jakarta EE 10のFeatureを全て追加導入する場合は以下のように実行します。依存関係にあるFeatureもあわせて導入されるため，これで全ての必要なFeatureが導入できます。
 
 ```
-installUtility install jakartaee-10.0
+featureUtility installFeature jakartaee-10.0
 ```
 
-また，Feature名のかわりにサーバー名を指定すると，そのサーバーの`server.xml`で定義されている全てのFeatureが（足りなければ）導入されます。
+また，`installServerFeatures`アクションを指定すると，Feature名のかわりにサーバー名を指定して，そのサーバーの`server.xml`で定義されている全てのFeatureを（足りなければ）導入することができます。
 
 ```
-installUtility install defaultServer
+featureUtility installServerFeatures defaultServer
 ```
 
-`installUtility`コマンドはインターネット上のレポジトリからファイルをダウンロードするので，外部のネットワーク接続が必要です。外部接続にProxyの構成などが必要な場合は，以下のコマンドを実行して画面の指示に従ってください。
+`featureUtility`コマンドはインターネット上のレポジトリからファイルをダウンロードするので，外部のネットワーク接続が必要です。外部接続にProxyの構成などが必要な場合は，以下のコマンドを実行して画面の指示に従ってください。
 
 ```
-installUtility viewSettings
+featureUtility viewSettings
 ```
 
 #### Java EE/Jakarta EEアプリケーションの構成
