@@ -3,8 +3,8 @@ Open Libertyの日本語ガイドブックを提供するプロジェクトで�
 
 # 目次
 
-
-- [序章: Open Libertyとは](docs/preface.md)
+- [このガイドブックについて](docs/preface.md)
+- [Open Libertyとは](docs/aboutliberty.md)
 - Java EE/Jakarta EEとその重要性
 - 開発環境のセットアップ: JDK，Liberty Tools，Open Liberty
 - Hello, Open Liberty: 最初のプログラム
