@@ -110,7 +110,7 @@ Libertyの構成ファイルにパスワードを記述する際には，いく�
 難読化にはLibertyの`securityUtility`コマンドを利用します。
 
 ```
-securityUtility encode MY_PASSWORD
+securityUtility encode パスワード文字列
 ```
 
 生成された`{xor}EgYADx4MDAgQDRs=`のような文字列をパスワードに指定します。
@@ -132,19 +132,19 @@ securityUtility encode MY_PASSWORD
 難読化のアルゴリズムにAESを指定することもできます。
 
 ```
-securityUtility encode　--encoding=aes  MY_PASSWORD
+securityUtility encode --encoding=aes パスワード文字列
 ```
 
-AESの変換の際の鍵をデフォルトから変更する場合は，以下のように鍵を指定して難読化します。
+AESの変換の際の鍵をデフォルトから変更する場合は，以下のように鍵になる文字列を指定して難読化します。
 
 ```
-securityUtility encode　--encoding=aes --key=MY_AES_KEY MY_PASSWORD
+securityUtility encode --encoding=aes --key=鍵文字列 パスワード文字列
 ```
 
 鍵をデフォルトから変更した場合は，Libertyがパスワードを解読できるように変数`wlp.password.encryption.key`で鍵を指定します。
 
 ``` xml
-<variable name="wlp.password.encryption.key" value="MY_AES_KEY" />
+<variable name="wlp.password.encryption.key" value="鍵文字列" />
 ```
 
 このファイルはアクセスを制限できる場所に配置し，後述する`<include>`で構成ファイルに取り込むようにします。
@@ -152,7 +152,7 @@ securityUtility encode　--encoding=aes --key=MY_AES_KEY MY_PASSWORD
 また，Libertyの起動時に引数でわたすこともできます。
 
 ```
-server start MY_SERVER_NAME -- --wlp.password.encryption.key=MY_AES_KEY
+server start サーバー名 -- --wlp.password.encryption.key=鍵文字列
 ```
 {% endnote %}
 
@@ -161,7 +161,7 @@ server start MY_SERVER_NAME -- --wlp.password.encryption.key=MY_AES_KEY
 
 `<include>`要素で`server.xml`から他のファイルを読み込むことができます。読み込み先のファイルの内容が`<include>`の場所に展開されます。
 
-`location`属性に読み込みファイルを相対パスで記述すると，元のファイルからの相対パス，${server.config.dir}からの相対パスが検索されます。
+`location`属性に読み込みファイルを相対パスで記述すると，元のファイルからの相対パス，`${server.config.dir}`からの相対パスが検索されます。
 
 ``` xml
 <include location="sessiondb.xml" />
@@ -204,7 +204,7 @@ Libertyの導入ディレクトリ内のファイルを読み込む場合は，�
 
 構成ファイルは`<include>`や`configDropins`などにより複数のファイルに分けて構成できるため，同じ構成が複数のファイルに記述されることがあります。このような状況では，構成は一定のルールに従ってマージされます。
 
-Libertyの構成には，何らかの管理オブジェクトを生成するFactory構成と，サーバー上の唯一の管理オブジェクトを設定するSingleton構成があります。'<webApplication>'や`<httpEndpoint>`，`<keyStore>`，`<dataSource>`，`<library>`などがFactory構成です。`<logging>`や`<quickStartSecurity>`，`<applicationManager>`などがSingleton構成です。
+Libertyの構成には，何らかの管理オブジェクトを生成するFactory構成と，サーバー上の唯一の管理オブジェクトを設定するSingleton構成があります。`<webApplication>`や`<httpEndpoint>`，`<keyStore>`，`<dataSource>`，`<library>`などがFactory構成です。`<logging>`や`<quickStartSecurity>`，`<applicationManager>`などがSingleton構成です。
 
 Factory構成は，複数回記述された場合もそれぞれが有効になります。下記の例ではWebアプリケーションは二つ，Liberty上に定義されることになります。
 
@@ -555,7 +555,7 @@ Libertyが対応している以下のDBMSについては，汎用のプロパテ
 - Embedded Derby
 - Oracle / Oracle UCP / Oracle RAC
 
-たとえば，IBM Db2については，以下のようなプロパティが利用できます。
+たとえば，IBM Db2については，`<properties.db2.jcc>`のようなプロパティが利用できます。
 
 ``` xml
 <properties.db2.jcc serverName="localhost" portNumber="50000"
@@ -603,6 +603,13 @@ LOG_DIR=/logs/wlp/server1
 
 ``` properties
 # enable_variable_expansion
+# Windows環境
+LIBPATH=C:\WORK\LIB;%LIBPATH%
+```
+
+``` properties
+# enable_variable_expansion
+# Windows以外
 LIBPATH=/work/lib:${LIBPATH}
 ```
 
