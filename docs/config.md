@@ -63,7 +63,7 @@ httpsPort=9443
 Libertyの起動時のコマンドラインでも`--`につづけて変数を指定することができます。たとえば`start`アクションでサーバーを起動する際に，以下のように変数を指定したとします。
 
 ```
-server start myserver -- -httpPort=10080
+server start myserver -- --httpPort=10080
 ```
 
 この場合，`${httpPort}`という変数は`10080`になります。
@@ -149,6 +149,11 @@ securityUtility encode　--encoding=aes --key=MY_AES_KEY MY_PASSWORD
 
 このファイルはアクセスを制限できる場所に配置し，後述する`<include>`で構成ファイルに取り込むようにします。
 
+また，Libertyの起動時に引数でわたすこともできます。
+
+```
+server start MY_SERVER_NAME -- --wlp.password.encryption.key=MY_AES_KEY
+```
 {% endnote %}
 
 
