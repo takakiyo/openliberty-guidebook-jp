@@ -3,23 +3,32 @@ Open Libertyの日本語ガイドブックを提供するプロジェクトで�
 
 # 目次
 
+はじめに
+
 - [このガイドブックについて](docs/preface.md)
 - [Open Libertyとは](docs/aboutliberty.md)
 - Java EE/Jakarta EEとその重要性
-- 開発環境のセットアップ: JDK，Liberty Tools，Open Liberty
+
+やってみようOpen Libertyによる開発
+
+- [開発環境のセットアップ: JDK，Liberty Tools，Open Liberty](docs/setup.md)
 - Hello, Open Liberty: 最初のプログラム
+- Java EEの基本: ServletとJSP
+- データベースとの接続: JDBCとデータソース
+- RESTful Webサービス: JAX-RS
+- Webアプリケーションの開発: Java Server Faces (JSF)
+- データ管理: Java Persistence API (JPA)
+
+リファレンス
+
 - [Open Libertyのディレクトリ構成](docs/dir.md)
 - [Open Libertyの構成ファイル](docs/config.md)
 - Open LibertyのMavenプロジェクト構成
-- Java EEの基本: ServletとJSP
-- Webアプリケーションの開発: Java Server Faces (JSF)
-- データ管理: Java Persistence API (JPA)
-- データベースとの接続: JDBCとデータソース
-- RESTful Webサービス: JAX-RS
+- アプリケーションのデプロイと運用: Open Libertyの機能
+
 - 例外処理とバリデーション: Bean Validation
 - セキュリティと認証: Java EE Security API
 - テスト戦略: JUnitとArquillianによる単体テストと統合テスト
-- アプリケーションのデプロイと運用: Open Libertyの機能
 - パフォーマンスチューニングと監視: MicroProfile MetricsとOpen Liberty
 - まとめと次のステップ
 
