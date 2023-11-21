@@ -13,6 +13,7 @@
     - Extension Pack for Java拡張機能
     - Liberty Tools拡張機能
 
+
 ### JDKのセットアップ
 
 JDKとは，「Java Development Kit」の略称で，Javaプログラミング言語でアプリケーションを開発するために必要なソフトウェア開発キットです。JDKには，以下の主要なコンポーネントが含まれています：
@@ -66,6 +67,7 @@ macOSでは，手動で環境変数`JAVA_HOME`の設定が必要です。シェ�
 export JAVA_HOME=`/usr/libexec/java_home -v 21`
 ```
 
+
 ### Visual Studio Codeのセットアップ
 
 Visual Studio Code（VS Code）は，マイクロソフトによって開発された無料のソースコードエディタです。以下のような特徴があります。
@@ -77,24 +79,85 @@ Visual Studio Code（VS Code）は，マイクロソフトによって開発さ�
 - カスタマイズと設定：ユーザーはエディタの外観，動作，キーバインドを独自に設定することができます。
 - コミュニティとサポート：アクティブなコミュニティに支えられており，オンラインのドキュメント，フォーラム，チュートリアルが充実しています。
 
-VS Codeを以下からダウンロードして導入してください。
+VS Codeをダウンロードサイト（[https://code.visualstudio.com/download](https://code.visualstudio.com/download)）からダウンロードして導入します。導入にあたっては，とくにデフォルトから変える必要がある部分はありません。
 
-https://code.visualstudio.com/download
 
-VS Codeは，拡張機能の「Japanese Language Pack for Visual Studio Code」を導入することで，操作画面を日本語化することができます。このガイドブックでは，日本語化した環境の画面を掲載しています。
+#### Visual Studio Codeの日本語化
 
-＊執筆中＊
+最初に起動した段階では，VS CodeはUIが英語で起動してきます。
 
-Windows環境の準備とVScodeの構成が本当に大変・・・
+![初期状態のVS Code](../images/vscode_jp1.png)
 
-なんでcmd.exeでPowerShellとかWLSとか立ち上がるの・・・
+VS Codeは，拡張機能の「Japanese Language Pack for Visual Studio Code」を導入することで，操作画面を日本語化することができます。
+
+① 画面左の「Extensions」をクリックし  
+② 検索欄から`japanese`で検索して  
+③ 検索結果から「Japanese Language Pack」を選択します  
+④ 画面右側に表示された詳細を確認し，発行者がMicrosoftである事を確認してから  
+⑤ 青い「Install」をクリックします
+
+![Japanese Language Packの導入](../images/vscode_jp2.png)
+
+導入が完了して，画面右下に「Change Language and Restrart」がでたら，クリックしいます。
+
+![導入完了とリスタート要求](../images/vscode_jp3.png)
+
+再起動すると，日本語化されたVS Codeが利用できるようになります。
+
+![日本語化されたVS Code](../images/vscode_jp4.png)
+
+このガイドブックでは，日本語化した環境の画面を掲載しています。
+
+
+#### 起動するターミナルの確認
+
+VS Codeから起動されるターミナルを確認します。メニューの「表示」「ターミナル」を選択します。
+
+![ターミナルの表示](../images/vscode_terminal1.png)
+
+起動されたターミナルの種類を確認します。
+
+![ターミナルの確認](../images/vscode_terminal2.png)
+
+maxOS環境では，zshやbashになっているでしょう。Windows環境でcmdやpwsh，PowerShellなどであれば問題ありません。
+
+Windows環境でUbuntuなどのwsl（Windows Subsystem for Linux）になっていると，Javaの実行環境やファイルパーミッションなどの関連で，このあとの手順が正常に実行できないことがあります。できればcmdなどに変更しておいてください。
+
+ターミナル名の右の＋の横の下むきの∨をクリックし，「規定のプロファイルの選択」を選択します。
+
+![規定のプロファイルの選択](../images/vscode_terminal3.png)
+
+画面上部に，利用可能なプロファイルの一覧が表示されますので，PowerShellかCommand Promptを選択してください。
+
+![プロファイルの一覧](../images/vscode_terminal4.png)
 
 #### Extension Pack for Java拡張機能のセットアップ
+
+VS CodeにJavaの開発のための拡張機能を導入します。
+
+① 画面左の「拡張」をクリックし  
+② 検索欄から`java`で検索して  
+③ 検索結果から「Extension Pack for Java」を選択します  
+④ 画面右側に表示された詳細を確認し，発行者がMicrosoftである事を確認してから  
+⑤ 青い「インストール」をクリックします
+
+![Extension Pack for Javaの導入](../images/vscode_java.png)
 
 
 #### Liberty Tools拡張機能のセットアップ
 
+VS CodeにLibertyの開発のための拡張機能を導入します。
+
+① 画面左の「拡張」をクリックし  
+② 検索欄から`liberty`で検索して  
+③ 検索結果から「Liberty Tools」を選択します  
+④ 画面右側に表示された詳細を確認し，発行者がOpen Libertyである事を確認してから  
+⑤ 青い「インストール」をクリックします
+
+![Extension Pack for Javaの導入](../images/vscode_libertytools.png)
+
 
 ### Open Libertyのセットアップ
 
-従来型のWASからLibertyで，開発者にとって最も大きな変更点は，事前のアプリケーションサーバーのセットアップが不要になったことです。Libertyの導入も構成も，アプリケーションのビルド作業の中で自動的におこなわれます。なので，開発環境に事前にLibertyをセットアップすることは不要です。次の章に進んでください。
+従来型のWASからLibertyで，開発者にとって最も大きな変更点は，事前のアプリケーションサーバーのセットアップが不要になったことです。Libertyの導入も構成も，アプリケーションのビルド作業の中で自動的におこなわれます。なので，開発環境に事前にLibertyをセットアップする必要はありません。次の章に進んでください。
+
