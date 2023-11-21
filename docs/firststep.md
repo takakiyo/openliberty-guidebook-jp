@@ -139,8 +139,97 @@ Libertyのサーバーが構成されて起動すると，初回はファイア�
 
 {% note %}
 
-ターミナルが文字化けしたら
+**ターミナルが文字化けしたら**
 
+Windows環境でJDK 18以降を使用している場合は，ターミナルの出力が文字化けしていて読めないことがあります。
+
+![文字化けしたターミナル](../images/encoding_mismatch1.png)
+
+これはJDK 18以降で，さまざまな箇所の文字エンコーディングのデフォルトがUTF-8に変更されたためです。ターミナルで実行されているPowerShellなどは，通常はUTF-8ではなくMS932で実行されているからです。ターミナルをUTF-8に変更する必要があります。
+
+まず，実行中のLibertyを止めます。
+
+「LIBERTY DASHBOARD」の「guide-app」で右クリックして「Stop」を選びます。
+
+![LIBERTY DASHBOARDでStopを選択](../images/encoding_mismatch2.png)
+
+メニューの「ファイル」「ユーザー設定」「設定」を開きます。
+
+![設定を開く](../images/encoding_mismatch3.png)
+
+設定画面の右上の「設定(JSON)を開く」ボタンをおします。
+
+![設定(JSON)を開く](../images/encoding_mismatch4.png)
+
+開いた`settings.json`を編集していきます。
+
+![設定(JSON)を開く](../images/encoding_mismatch5.png)
+
+既存の内容が空であったら，以下のように記入します。
+
+``` json
+{
+    // PowerShellを規定で使用
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    // PowerShellをUTF-8（Code Page 65001）で起動
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "args": [
+                "-NoExit",
+                "-Command",
+                "chcp 65001"
+            ],
+        }
+    }
+}
+```
+
+すでにいくつかの設定があった場合は，
+
+``` json
+{
+    "redhat.telemetry.enabled": true,
+    "terminal.integrated.defaultProfile.windows": "PowerShell"
+}
+```
+
+末尾に`,`を追加して設定を追加します。上記のように，既に`terminal.integrated.defaultProfile.windows`に`"PowerShell"`が指定されていた場合は，その部分は追加で設定する必要がありません。
+
+``` json
+{
+    "redhat.telemetry.enabled": true,
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    // PowerShellをUTF-8（Code Page 65001）で起動
+    "terminal.integrated.profiles.windows": {
+        "PowerShell": {
+            "source": "PowerShell",
+            "args": [
+                "-NoExit",
+                "-Command",
+                "chcp 65001"
+            ],
+        }
+    }
+}
+```
+
+設定を保存したら，VS Codeを終了して再起動してください。
+
+この段階でMavenからのUTF-8の出力は正常に表示されるようになりましたが，まだLibertyからの出力がMS932のままなので，その部分が文字化けします。
+
+Mavenから起動するLibertyの出力をUTF-8にするには，`pom.xml`をひらき，`<properties>`の部分に以下の2行を追加します。
+
+``` xml
+<properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- 以下の2行を追加 -->
+    <liberty.jvm.arg1>-Dstdout.encoding=UTF-8</liberty.jvm.arg1>
+    <liberty.jvm.arg2>-Dstderr.encoding=UTF-8</liberty.jvm.arg2>
+</properties>
+```
 
 {% endnote %}
 
