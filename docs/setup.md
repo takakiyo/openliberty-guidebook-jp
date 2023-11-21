@@ -50,15 +50,15 @@ Windowsであれば`.msi`，macOSであれば`.pkg`の拡張子のものをダ�
 
 ダウンロードしたファイルを実行してインストーラーを起動します。
 
-![Eclipse Temurinのセットアップ1](../images/temurin_setup1.jpg)
+![Eclipse Temurinのセットアップ1](../images/temurin_setup1.png)
 
 Windowsでは，環境変数`JAVA_HOME`を設定するようようにします。
 
-![Eclipse Temurinのセットアップ1](../images/temurin_setup2.jpg)
+![Eclipse Temurinのセットアップ1](../images/temurin_setup2.png)
 
 導入を実行します。
 
-![Eclipse Temurinのセットアップ1](../images/temurin_setup1.jpg)
+![Eclipse Temurinのセットアップ1](../images/temurin_setup1.png)
 
 macOSでは，手動で環境変数`JAVA_HOME`の設定が必要です。シェルとしてbashを使用していればホームディレクトリの`.bashrc`に，zshを使用していれば`.zshrc`に以下の一行を追加してください。数字の`21`の部分は，ダウンロードしたときに選んだ「Version」に合わせてください。
 
