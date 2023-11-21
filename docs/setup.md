@@ -90,7 +90,7 @@ VS Codeをダウンロードサイト（[https://code.visualstudio.com/download]
 
 VS Codeは，拡張機能の「Japanese Language Pack for Visual Studio Code」を導入することで，操作画面を日本語化することができます。
 
-① 画面左の「Extensions」をクリックし  
+① 画面左のアクティビティ・バーで「Extensions」をクリックし  
 ② 検索欄から`japanese`で検索して  
 ③ 検索結果から「Japanese Language Pack」を選択します  
 ④ 画面右側に表示された詳細を確認し，発行者がMicrosoftである事を確認してから  
@@ -135,7 +135,7 @@ Windows環境でUbuntuなどのwsl（Windows Subsystem for Linux）になって�
 
 VS CodeにJavaの開発のための拡張機能を導入します。
 
-① 画面左の「拡張」をクリックし  
+① 画面左のアクティビティ・バーで「拡張」をクリックし  
 ② 検索欄から`java`で検索して  
 ③ 検索結果から「Extension Pack for Java」を選択します  
 ④ 画面右側に表示された詳細を確認し，発行者がMicrosoftである事を確認してから  
@@ -148,7 +148,7 @@ VS CodeにJavaの開発のための拡張機能を導入します。
 
 VS CodeにLibertyの開発のための拡張機能を導入します。
 
-① 画面左の「拡張」をクリックし  
+① 画面左のアクティビティ・バーで「拡張」をクリックし  
 ② 検索欄から`liberty`で検索して  
 ③ 検索結果から「Liberty Tools」を選択します  
 ④ 画面右側に表示された詳細を確認し，発行者がOpen Libertyである事を確認してから  
