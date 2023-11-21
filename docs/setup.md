@@ -1,4 +1,4 @@
-## 開発環境のセットアップ: JDK，Liberty Tools，Open Liberty
+## 開発環境のセットアップ: JDK，Visual Studio Code，Open Liberty
 
 この章では，実際にOpen Libertyを使用してJakarta EEアプリケーションを構築していきます。
 
@@ -98,7 +98,7 @@ VS Codeは，拡張機能の「Japanese Language Pack for Visual Studio Code」�
 
 ![Japanese Language Packの導入](../images/vscode_jp2.png)
 
-導入が完了して，画面右下に「Change Language and Restrart」がでたら，クリックしいます。
+導入が完了して，画面右下に「Change Language and Restrart」がでたら，クリックします。
 
 ![導入完了とリスタート要求](../images/vscode_jp3.png)
 

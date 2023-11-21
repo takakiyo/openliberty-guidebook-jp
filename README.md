@@ -11,7 +11,7 @@ Open Libertyの日本語ガイドブックを提供するプロジェクトで�
 
 やってみようOpen Libertyによる開発
 
-- [開発環境のセットアップ: JDK，Liberty Tools，Open Liberty](docs/setup.md)
+- [開発環境のセットアップ: JDK，Visual Studio Code，Open Liberty](docs/setup.md)
 - [Hello, Open Liberty: 最初のプログラム](docs/firststep.md)
 - Java EEの基本: ServletとJSP
 - データベースとの接続: JDBCとデータソース
