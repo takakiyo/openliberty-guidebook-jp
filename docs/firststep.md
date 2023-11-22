@@ -269,7 +269,7 @@ Libertyを停止するには，「LIBERTY DASHBOARD」の「guide-app」で右�
 
 現在時刻を表示する簡単なWebアプリケーションを作成してみましょう。JSPを使用します。
 
-JSPなどのWebコンテンツを置くフォルダーとして`src/main`の下に`webapp`というフォルダーを新規に作成し，`index.jsp`というファイルを作成します。
+JSPなどのWebコンテンツを置くフォルダーとして`src/main`の下に`webapp`というフォルダーを新規に作成し，`index.jsp`というファイルを作成します。`webapp`フォルダーの直下におかれた`index.jsp`もしくは`index.html`は，アプリケーションのURLが呼び出されたときに，その内容が表示されます。
 
 エクスプローラーの`src/main`の`main`の部分で右クリックして「新しいフォルダー...」を選択します。`src`の部分で右クリックすると別の場所にできてしまうので注意してください。
 
@@ -295,7 +295,7 @@ It is <%= java.time.LocalTime.now() %>, now.
 </html>
 ```
 
-JSPでは`<%=  %>`のなかにJavaの式を書くことができます。式の結果がその場所にHTMLの一部として組み込まれます。`LocalTime`クラスを利用して現在時刻を
+JSPは基本的にHTMLの書式で内容を記述しますが，JavaのコードやJSP固有のタグを含むことができます。JSPでは`<%=  %>`のなかにJavaの式を書くことができます。式の結果がその場所にHTMLの一部として組み込まれます。`LocalTime`クラスを利用して現在時刻を取得しています。
 
 「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-app/](http://localhost:9080/guide-app)にアクセスしてみましょう。
 
