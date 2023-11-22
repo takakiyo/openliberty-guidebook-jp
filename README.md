@@ -13,7 +13,7 @@ Open Libertyの日本語ガイドブックを提供するプロジェクトで�
 
 - [開発環境のセットアップ: JDK，Visual Studio Code，Open Liberty](docs/setup.md)
 - [Hello, Open Liberty: 最初のプログラム](docs/firststep.md)
-- Java EEの基本: ServletとJSP
+- [Java EEの基本: ServletとJSP](docs/servlet_jsp.md)
 - データベースとの接続: JDBCとデータソース
 - RESTful Webサービス: JAX-RS
 - Webアプリケーションの開発: Java Server Faces (JSF)
