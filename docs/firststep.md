@@ -261,6 +261,18 @@ Mavenから起動するLibertyの出力をUTF-8にするには，`pom.xml`をひ
 
 ![Libertyのトップ画面](../images/firststep8.png)
 
+{% note %}
+
+Libertyでは，アプリケーションサーバーのルートディレクトリ（`/`）をコンテキスト・ルートとしたアプリケーションをデプロイしていない場合，サーバーのトップページにアクセスすると，上記のようなWelcome Pageが表示されます。
+
+このページを無効化するには，サーバーの構成ファイル`server.xml`に以下の設定を追加します。
+
+``` xml
+<httpDispatcher enableWelcomePage="false" />
+```
+
+{% endnote %}
+
 Libertyを停止するには，「LIBERTY DASHBOARD」の「guide-app」で右クリックして「Stop」を選びます。
 
 ![LIBERTY DASHBOARDでStopを選択](../images/firststep9.png)
@@ -275,7 +287,7 @@ JSPなどのWebコンテンツを置くフォルダーとして`src/main`の下�
 
 ![右クリックして新規フォルダーを作成](../images/firststep10.png)
 
-入力欄ができるので`webapp`と入力し，Enterキーをおします。
+入力欄ができるので`webapp`と入力し，`Enter`キーをおします。
 
 ![新規フォルダーにwebappという名前をつける](../images/firststep11.png)
 
@@ -283,7 +295,7 @@ JSPなどのWebコンテンツを置くフォルダーとして`src/main`の下�
 
 ![webappのしたにindex.jspを作成する](../images/firststep12.png)
 
-JSPファイルを編集して，以下の内容を入力して保存します。
+JSPファイルを編集して，以下の内容を入力して保存します。ファイルの変更内容を保存するには，Windows環境では`Ctrl`+`S`を，macOS環境では`⌘`+`S`をキーボードから入力します。
 
 ``` jsp
 <!DOCTYPE html>
