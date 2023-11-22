@@ -49,9 +49,12 @@ Mavenが導入されていなければDependency Analyticsは正常に動作し�
 簡単にプロジェクトの内容を説明します。
 
 - `.mvn`：Maven Wrapperの実行に必要なファイルが格納されています
-- `src/main`：プロジェクトのソースで，実際のアプリケーションのソース
-    - `java`：Javaのソースコード
-    - `liberty`：Libertyの構成ファイル
+- `src`
+    - `main`：プロジェクトのソースで，実際のアプリケーション作成するためのソース
+        - `java`：Javaのソースコード
+        - `liberty`：Libertyの構成ファイル
+        - `webapp`：**デフォルトでは存在しない** Webコンテンツのソースコード
+    - `test`：**デフォルトでは存在しない** テストに使われるソースで，アプリケーションにはパッケージされない
 - `target`：ビルドによって生成されたファイルが置かれるフォルダー
 - `.docerignore`：Dockerイメージをビルドする際に，特定のファイルやディレクトリを無視するよう指示するファイル
 - `.gitignore`：Gitに対して特定のファイルやディレクトリを追跡しないように指示するファイル
@@ -130,7 +133,7 @@ Maven Wrapperは，最小限のファイルだけをプロジェクトに含み�
 
 ![LIBERTY DASHBOARDでStartを選択](../images/firststep6.png)
 
-MavenがWrapper経由で起動されてビルドが行われます。最初に実行したときには，大量のファイルがセントラルレポジトリーからダウンロードされます（2回目以降はキャッシュした内容を使用するので，すぐに開発が開始できます）。
+MavenがWrapper経由で起動されてビルドが行われます。最初に実行したときには，大量のファイルがセントラルレポジトリーからダウンロードされます（2回目以降はキャッシュした内容を使用するので，すぐに開発が開始できます）。Mavenのビルド過程で，Libertyの導入に必要なファイルも全てダウンロードされ，`terget/liberty`ディレクトリの下に環境が構築され，構成ファイルやアプリケーションの導入も行われます。
 
 Libertyのサーバーが構成されて起動すると，初回はファイアウォールの警告が出ることがあります。「アクセスを許可する」を選択してください。
 
@@ -145,7 +148,7 @@ Windows環境でJDK 18以降を使用している場合は，ターミナルの�
 
 ![文字化けしたターミナル](../images/encoding_mismatch1.png)
 
-これはJDK 18以降で，さまざまな箇所の文字エンコーディングのデフォルトがUTF-8に変更されたためです。ターミナルで実行されているPowerShellなどは，通常はUTF-8ではなくMS932で実行されているからです。ターミナルをUTF-8に変更する必要があります。
+これはJDK 18以降で，さまざまな箇所の文字エンコーディングのデフォルトがUTF-8に変更されたためです。ターミナルで実行されているPowerShellなどは，通常はUTF-8ではなくMS932（Shift-JIS）で実行されているため文字化けします。ターミナルをUTF-8に変更する必要があります。
 
 まず，実行中のLibertyを止めます。
 
@@ -232,4 +235,73 @@ Mavenから起動するLibertyの出力をUTF-8にするには，`pom.xml`をひ
 ```
 
 {% endnote %}
+
+ターミナルに以下のようなメッセージが出力されたら，Libertyの起動は成功です。
+
+``` terminal
+[INFO] ************************************************************************
+[INFO] *    Liberty is running in dev mode.
+[INFO] *        Automatic generation of features: [ Off ]
+[INFO] *        h - see the help menu for available actions, type 'h' and press Enter.
+[INFO] *        q - stop the server and quit dev mode, press Ctrl-C or type 'q' and press Enter. 
+[INFO] *
+[INFO] *    Liberty server port information:
+[INFO] *        Liberty server HTTP port: [ 9080 ]
+[INFO] *        Liberty server HTTPS port: [ 9443 ]
+[INFO] *        Liberty debug port: [ 7777 ]
+[INFO] ************************************************************************
+[INFO] Source compilation was successful.
+[INFO] [監査      ] CWWKT0017I: Web アプリケーションが削除されました (default_host): http://localhost:9080/guide-app/
+[INFO] [監査      ] CWWKZ0009I: アプリケーション guide-app は正常に停止しました。
+[INFO] [監査      ] CWWKT0016I: Web アプリケーションが使用可能です (default_host): http://localhost:9080/guide-app/
+[INFO] [監査      ] CWWKZ0003I: アプリケーション guide-app が 0.491 秒で更新されました。
+```
+
+ブラウザで，[http://localhost:9080/](http://localhost:9080/)にアクセスしてみましょう。以下のような画面が出れば，手元の環境でLibertyが正常に稼働しています。
+
+![Libertyのトップ画面](../images/firststep8.png)
+
+Libertyを停止するには，「LIBERTY DASHBOARD」の「guide-app」で右クリックして「Stop」を選びます。
+
+![LIBERTY DASHBOARDでStopを選択](../images/firststep9.png)
+
+### 最初のアプリケーション
+
+現在時刻を表示する簡単なWebアプリケーションを作成してみましょう。JSPを使用します。
+
+JSPなどのWebコンテンツを置くフォルダーとして`src/main`の下に`webapp`というフォルダーを新規に作成し，`index.jsp`というファイルを作成します。
+
+エクスプローラーの`src/main`の`main`の部分で右クリックして「新しいフォルダー...」を選択します。`src`の部分で右クリックすると別の場所にできてしまうので注意してください。
+
+![右クリックして新規フォルダーを作成](../images/firststep10.png)
+
+入力欄ができるので`webapp`と入力し，Enterキーをおします。
+
+![新規フォルダーにwebappという名前をつける](../images/firststep11.png)
+
+さらに`webapp`で右クリックして「新しいファイル...」を選択します。ファイル名として`index.jsp`を入力します。
+
+![webappのしたにindex.jspを作成する](../images/firststep12.png)
+
+JSPファイルを編集して，以下の内容を入力して保存します。
+
+``` jsp
+<!DOCTYPE html>
+<html>
+<head><title>First Page</title></head>
+<body>
+It is <%= java.time.LocalTime.now() %>, now.
+</body>
+</html>
+```
+
+JSPでは`<%=  %>`のなかにJavaの式を書くことができます。式の結果がその場所にHTMLの一部として組み込まれます。`LocalTime`クラスを利用して現在時刻を
+
+「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-app/](http://localhost:9080/guide-app)にアクセスしてみましょう。
+
+![index.jspの表示結果](../images/firststep13.png)
+
+現在時刻が表示されれば成功です。何回かリロードを繰り返して，表示される時刻が変わることを確認してください。
+
+最後に「LIBERTY DASHBOARD」の「guide-app」で右クリックして「Stop」を選び，Libertyを停止します。
 
