@@ -242,6 +242,17 @@ Webアプリケーション内のパスのマッピングは，Javaコード内�
 
 いずれにも該当しないパスが要求された場合，`webapp`フォルダーの中のコンテンツから一致するものが検索され，見つかればそのファイルがそのまま送信されます。
 
+{% note %}
+
+マッピングの例外が，`WEB-INF`と`META-INF`です。これらのフォルダーの中のコンテンツは，リクエストとのマッチ対象になりません。これらのフォルダーが外部からのURLの指定で呼び出されることはありません。
+
+`WEB-INF`は，Webアプリケーションの構成情報やServletを構成するJavaのクラスファイル，そこから呼び出されるライブラリなどが格納されます。
+
+`META-INF`は，Javaのアーカイブに共通の設定ファイルやメタ情報が格納されます。
+
+{% endnote %}
+
+
 #### GETリクエストとPOSTリクエスト
 
 HTTPリクエストにおけるメソッドにはいくつもの種類がありますが，Servlet仕様で対応しているメソッドとしては，以下のようなものがあります。
@@ -512,10 +523,43 @@ public class HederServlet  extends HttpServlet {
 }
 ```
 
+`HttpServletRequest`のヘッダー関連のメソッドには以下のようなものがあります。
+
+|メソッド定義|説明|
+|------------|----|
+|String getHeader​(String name)|指定された名前のヘッダーを取得します。同名のヘッダーが複数存在していれば最初の値を返します。存在していなければnullが返ります。|
+|Enumeration<String> getHeaders​(String name)|HTTP仕様では，同じ名前の複数のヘッダーの存在が許されています。このメソッドはそれらの全てを含んだEnumerationを返します。|
+|int getIntHeader​(String name)|指定された名前のヘッダーを数値として解釈して値を返します。存在していなければ-1が返ります。|
+|long getDateHeader​(String name)|指定された名前のヘッダーを日付として解釈してUNIX Epoch値を返します。存在していなければ-1が返ります。|
+|Enumeration<String> getHeaderNames()|リクエストに含まれているヘッダー名の一覧をEnumerationで取得します。|
+
 ##### パラメーターの読み取り
 
+HTMLフォームを使用したWebアプリケーションなどでは，パラメーターを追加したリクエストがサーバーに送信されます。
+
 ``` html
+<form action="/submit-login" method="post">
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username">
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password">
+    </div>
+    <div>
+        <input type="submit" value="Login">
+    </div>
+</form>
 ```
+
+この`<form>`を「Login」ボタンでサブミットすると，`username`と`password`の二つのパラメーターがサーバーに送信されます。
+
+- GETリクエストでは，パラメーターはURLのクエリ文字列に含めて送信されます。
+    - 例： `https://example.com/submit-login?username=john&password=abc12345`
+- POSTリクエストでは，パラメーターは`application/x-www-form-urlencoded`形式でリクエストメッセーのボディで送信されます。
+
+このパラメーターを取得するメソッドが，
 
 ##### 属性（attribute）の読み書き
 
@@ -523,7 +567,7 @@ public class HederServlet  extends HttpServlet {
 
 `HttpServletRequest`の属性は，Webアプリケーション開発において，リクエスト処理の間にデータを保存し，異なるコンポーネント間で共有するために使用されます。サーブレットやJSPなどのWebコンポーネント間で情報を伝達するのに便利な手段です。
 
-後述するように，ServletとJSPの処理を連携させ，ビジネスロジックの処理をServletで実行し，結果をJSPで表示する，というような使い方ができます。このとき，ServletからJSPに情報を連携する手段として，`HttpServletRequest`の属性が使用されます。
+後述するように，ServletとJSPの処理を連携させることができます。ビジネスロジックの処理をServletで実行し，結果をJSPで表示する，というような使い方が一般的です。このとき，ServletからJSPに情報を連携する手段として，`HttpServletRequest`の属性が使用されます。
 
 また，認証フィルターがユーザーの認証情報を属性に設定し，その後の処理でこの情報に基づいてアクセス制御を行うこともできます。
 
