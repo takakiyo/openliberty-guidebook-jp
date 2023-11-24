@@ -274,13 +274,13 @@ HTTPリクエストにおけるメソッドにはいくつもの種類があり�
 
 HTTPのメソッドで重要な概念として冪等性と安全性があります。
 
-**冪等性（Idempotency）**とは，同じリクエストを一度だけ実行しても二度以上実行しても，その結果が初回と同じであることを保証します。つまり，リクエストの繰り返しが追加の副作用を引き起こさないことを意味します。
+**冪等性（Idempotency）** とは，同じリクエストを一度だけ実行しても二度以上実行しても，その結果が初回と同じであることを保証します。つまり，リクエストの繰り返しが追加の副作用を引き起こさないことを意味します。
 
 GET，HEAD，PUT，DELETEは冪等なメソッドです。たとえば，同じリソースに対するDELETEリクエストを何度実行しても，最初の成功したリクエスト以降は何も変化しません。
 
 POSTは冪等ではありません。同じPOSTリクエストを繰り返すと，新しいリソースが何度も作成される可能性があります。
 
-**安全性（Safety）**とは，サーバー上のリソースの状態を変更しないことを保証します。これらのメソッドは，データの取得や読み取りに使用され，データの作成，更新，削除などの書き込み操作を行いません。
+**安全性（Safety）** とは，サーバー上のリソースの状態を変更しないことを保証します。これらのメソッドは，データの取得や読み取りに使用され，データの作成，更新，削除などの書き込み操作を行いません。
 
 GET，HEADなどは安全なメソッドです。これらは情報の取得のみを目的としており，サーバー側のリソースの状態を変更しません。
 
@@ -290,7 +290,7 @@ POST，PUT，DELETEなどは安全ではありません。これらはリソー�
 
 Webアプリケーションを実装するさいには，これらのHTTPメソッドに応じたアプリケーションの挙動の原則を守ることが重要です。
 
-ただ，あくまで原則です。GETでサーバー側の状態を一切変更していけない，というわけではありません。安全な変更ならば構いません。たとえば，何回アクセスしたかを表示するアクセスカウンターなどは，表示するたびに数字が増えますが，何回でも安全にリクエストを送信することができます。
+ただ，あくまで原則です。GETでサーバー側の状態を一切変更していけない，というわけではありません。安全な変更ならば構いません。たとえば，何回アクセスしたかを表示するアクセスカウンターなどは，表示するたびに数字が増えますが，何回でも安全にリクエストを送信することができますので，GETでリクエストを処理しても構いません。
 
 {% endnote %}
 
@@ -455,8 +455,8 @@ public class SnoopServlet extends HttpServlet {
 
 呼び出しているメソッドの正確な意味については，Javadocを参照してください。
 
-    HttpServletRequest (Jakarta Servlet API documentation)
-    [https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletrequest](https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletrequest)
+- HttpServletRequest (Jakarta Servlet API documentation)
+    - [https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletrequest](https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletrequest)
 
 ##### リクエスト・ヘッダの取得
 
@@ -467,6 +467,8 @@ public class SnoopServlet extends HttpServlet {
 ``` java
 String userAgent = req.getHeader("User-Agent");
 ```
+
+受け取ったヘッダーの名前の一覧は，`getHeaderNames()`で取得できます。これをつかって，受け取ったヘッダーを全て列挙するサーブレットがこちらになります。
 
 ``` java
 package com.demo;
