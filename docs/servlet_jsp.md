@@ -244,7 +244,7 @@ Webアプリケーション内のパスのマッピングは，Javaコード内�
 
 {% note %}
 
-マッピングの例外が，`WEB-INF`と`META-INF`です。これらのフォルダーの中のコンテンツは，リクエストとのマッチ対象になりません。これらのフォルダーが外部からのURLの指定で呼び出されることはありません。
+マッピングの例外が，`WEB-INF`と`META-INF`です。これらのフォルダーの中のコンテンツは，リクエストとのマッチ対象になりません。これらのフォルダーの中身が外部からのURLの指定で呼び出されることはありません。
 
 `WEB-INF`は，Webアプリケーションの構成情報やServletを構成するJavaのクラスファイル，そこから呼び出されるライブラリなどが格納されます。
 
@@ -557,9 +557,23 @@ HTMLフォームを使用したWebアプリケーションなどでは，パラ�
 
 - GETリクエストでは，パラメーターはURLのクエリ文字列に含めて送信されます。
     - 例： `https://example.com/submit-login?username=john&password=abc12345`
-- POSTリクエストでは，パラメーターは`application/x-www-form-urlencoded`形式でリクエストメッセーのボディで送信されます。
+- POSTリクエストでは，パラメーターは`application/x-www-form-urlencoded`形式に変換されてリクエストメッセージのボディで送信されます。
 
-このパラメーターを取得するメソッドが，
+`HttpServletRequest`のインスタンス`req`からパラメーターを取得するには`getParameter`メソッドを使用します。
+
+``` java
+String username = req.getParameter("username");
+String password = req.getParameter("password");
+```
+
+パラメーターに非ASCII文字が含まれているときには，パラメーターを取得する前に，エンコーディングを指定する必要があります。
+
+``` java
+req.setCharacterEncoding("UTF-8");
+String content = req.getParameter("content");
+```
+
+また，パラメーター内の文字列は利用者が任意に設定が可能です。その内容は安全ではないので，適切な検証が常に必要です。とくに，DBに発行するSQL，画面に表示する内容，OS上で実行するコマンドなどを，取得したパラメーター文字列から直接作成することは避けましょう。きちんとした検証や加工をしてからでないと，脆弱性の原因となります。
 
 ##### 属性（attribute）の読み書き
 
@@ -571,13 +585,13 @@ HTMLフォームを使用したWebアプリケーションなどでは，パラ�
 
 また，認証フィルターがユーザーの認証情報を属性に設定し，その後の処理でこの情報に基づいてアクセス制御を行うこともできます。
 
-`HttpServletRequest`のインスタンス`req`に属性を保存するには`setAttribute`メソッドを使用します。
+`HttpServletRequest`のインスタンス`req`に属性を保存するには`setAttribute(String name, Object value)`メソッドを使用します。
 
 ``` java
 req.setAttribute("com.demo.message", message);
 ```
 
-属性を読み出すには，`getAttribute`メソッドを使用します。
+属性を読み出すには，`getAttribute(String name)`メソッドを使用します。
 
 ``` java
 Massage message = (Message)req.getAttribute("com.demo.message");
@@ -586,6 +600,86 @@ Massage message = (Message)req.getAttribute("com.demo.message");
 保存した属性が有効なのは，リクエストの処理が開始されてから処理が完了し，レスポンスを返すまでです。リクエストの処理が終了すると，内容は失われます。
 
 #### HttpSession：複数のリクエストにまたがるセッション
+
+`HttpSession`は，Webアプリケーションにおけるセッション管理を行うためのメカニズムです。クライアント（通常はWebブラウザ）ごとにセッションを作成し，そのセッションを通じてユーザーのステート情報を保持することができます。
+
+HTTPは，ステートレスなプロトコルです。サーバーとブラウザの通信は，ページの表示など一定の処理を行うごとに切断されます。ページ遷移などして，続きの処理を実施するときに，あらためて通信を開始します。サーバーは，複数のクライアントから送られる多くのリクエストのうち，どのリクエストが同じユーザーからのリクエストかを識別して，それらを一つのセッションとしてあつかう方法を提供します。
+
+`HttpSession`は，`HttpServletRequest`のインスタンスから`getSession()`メソッドで取得します。
+
+``` java
+HttpSession session = req.getSession();
+```
+
+{% note %}
+
+`getSession()`メソッドには，引数なしのものと，`boolean`の引数を取るものがあります。
+
+引数を取るものは，現在のセッションに既存の`HttpSession`のインスタンスが存在しないときに，新規に作成するかを指示します。以下のように実行すると，既存のインスタンスがあるときにのみ`HttpSession`が返され，存在しなければ`null`が返ります。
+
+``` java
+HttpSession session = req.getSession(false);
+```
+
+引数なしのメソッドは，`getSession(true)`と同じ意味です。既存の`HttpSession`が存在しなければ新規のインスタンスが生成されて返されます。
+
+{% endnote %}
+
+##### 属性（attribute）の読み書き
+
+`HttpSession`には属性（attribute）を保存できます。保存する属性は，`java.io.Serializable`を実装した直列化可能なクラスである必要があります。
+
+``` java
+// データの保存
+session.setAttribute("user", userObject);
+```
+
+`HttpSession`に保存した属性は，リクエストをまたがって，同じユーザーからの同一セッション内で参照することができます。
+
+``` java
+// データの取得
+User user = (User) session.getAttribute("user");
+```
+
+不要になった属性は，削除することができます。
+
+``` java
+session.removeAttribute("user");
+```
+
+`HttpSession`によって，Webアプリケーションの開発者は，ログイン状態の管理やユーザー固有の設定情報の保存などが可能になります。
+
+##### HttpSessionのスコープ
+
+`HttpSession`の有効期限は，`invalidate()`メソッドが実行されるまでか，タイムアウト時間が経過するまでです。
+
+タイムアウト時間は，アプリケーション中で`setMaxInactiveInterval(int interval)`メソッドで指定することが可能です。単位は秒です。
+
+``` java
+// タイムアウト時間を5分に設定
+session.setMaxInactiveInterval(300);
+```
+
+デフォルトのタイムアウト時間は，Libertyの構成ファイル`server.xml`で設定できます。`httpSession`要素の`invalidationTimeout`属性で指定します。
+
+``` xml
+<!-- デフォルトのタイムアウト時間を5分に設定 -->
+<httpSession invalidationTimeout="5m" />
+```
+
+`HttpSession`の有効範囲は，Webアプリケーションです。同じアプリケーションサーバーで複数のWebアプリケーションが実装されている場合でも，アプリケーションをまたいでセッション内容を共有することはできません。
+
+##### 分散環境でのHttpSession
+
+おなじWebアプリケーションが複数のサーバーで分散実行されているとき，それらのサーバー間でセッション内容を共有する仕組みがLibertyでは提供されています。
+
+##### HttpSessionとパフォーマンス
+
+{% note %}
+
+**セッションの追跡メカニズム**
+
+{% endnote %}
 
 #### HttpServletResponse：レスポンスの処理
 
