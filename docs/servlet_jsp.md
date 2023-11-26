@@ -51,6 +51,7 @@ package com.demo;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Locale;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -65,8 +66,8 @@ public class HelloServlet extends HttpServlet {
         throws ServletException, IOException
     {
         // リクエストの指定する言語を取得
-        String language = req.getLocale().getLanguage();
-        String greeting = switch(language) {
+        Locale locale = req.getLocale();
+        String greeting = switch(locale.getLanguage()) {
             case "fr" -> "Bonjour, ";
             case "ja" -> "こんにちは、";
             case "zh" -> "你好，";
@@ -74,7 +75,7 @@ public class HelloServlet extends HttpServlet {
         };
         // レスポンスのヘッダを設定
         resp.setHeader("Vary", "Accept-Language");
-        resp.setHeader("Content-Language", language);
+        resp.setLocale(locale);
         // レスポンスをHTMLに指定してPrintWriterを取得
         resp.setContentType("text/html; charset=UTF-8");
         PrintWriter writer = resp.getWriter();
@@ -153,8 +154,8 @@ sec-ch-ua-platform: "Windows"
 
 HTTPのリクエスト・メッセージは以下のような構造になっています。
 
-- **スタートライン**
-    - メッセージの1行目です。**リクエストライン**とも呼ばれます。
+- **リクエストライン**
+    - メッセージの1行目です。スタートラインとも呼ばれます。
     - リクエストのメソッド（`GET`や`POST`など），ターゲット（上記の例では`/guide-app/hello`）と，HTTPバージョンから構成されています。
 - **ヘッダー**
     - `ヘッダー名: 内容`の形式で，情報が行ごとに並んでいます。
@@ -183,8 +184,8 @@ Date: Thu, 23 Nov 2023 05:47:06 GMT
 
 レスポンス・メッセージは，同様に以下のような構造になっています。
 
-- **スタートライン**
-    - メッセージの1行目です。ステータストラインとも呼ばれます。
+- **ステータストライン**
+    - メッセージの1行目です。スタートラインとも呼ばれます。
     - HTTPバージョン，ステータスコード（リクエストに対する結果を示す3桁の数値コード），ステータステキストから構成されています。
 - **ヘッダー**
     - `ヘッダー名: 内容`の形式で，情報が行ごとに並んでいます。
@@ -677,23 +678,26 @@ session.setMaxInactiveInterval(300);
 
 **セッションの追跡メカニズム**
 
-{% endnote %}
-
 アプリケーションサーバーがクライアントからのセッションを追跡するためには，一般的にCookieが使用されます。通常は、`HttpSession`のインスタンスが作成されたときにセッションIDをふくんだ文字列がクライアントのCookieに設定されます。以降は，クライアントから送信されるCookieに含まれるセッションIDをもとにトラッキングが行われます。
 
 CookieにセッションIDを保存するための名前は，Servlet仕様で`JSESSIONID`と決められています。この文字列は，特別な事情がない限り，変更しない方が安全です。
 
 LibertyがCookieに保存する文字列は，以下のような構造をしています。
 
+```
+Set-Cookie: JSESSIONID=0000T7CLaNuryESXrWkaIyWGr_a:68798fcf-430a-41e9-9c9e-05bf1b608abf; Path=/; HttpOnly
+```
 
-- ``：バージョン番号
+- `0000`：バージョン番号
 	- アプリケーションサーバーがメモリにキャッシュしているセッションのバージョン番号です。他のサーバーで処理が行われた時には，この数値が増えるようになっています。キャッシュのバージョン番号とつきあわせて，キャッシュが古くなっていることが検出されると，DBなどから最新のセッションが読み込まれます。
-- ``：セッションID
+- `T7CLaNuryESXrWkaIyWGr_a`：セッションID
 	- アプリケーションから見えているセッションID
-- ``：セッションの処理をしたサーバーの固有ID
+- `68798fcf-430a-41e9-9c9e-05bf1b608abf`：セッションの処理をしたサーバーの固有ID
 	- WebSphere Pluginなどで負荷分散を行っている場合，このIDをもとに，なるべく前回と同じサーバーに処理を割り振る（アフィニティ）ために使用されます。毎回異なるサーバーへリクエストが転送されると，メモリ上のキャッシュが効率的に利用できないからです。
 
 このように，セッションIDが変化しなくても，Libertyは状況に合わせて`JSESSIONID`を適宜，書き換えています。セッションIDを取得する必要がある場合は，Cookieから直接読み込むのではなく，APIを利用してください。
+
+{% endnote %}
 
 ##### HttpSessionとパフォーマンス
 
@@ -707,11 +711,204 @@ LibertyがCookieに保存する文字列は，以下のような構造をして�
 
 #### HttpServletResponse：レスポンスの処理
 
-#### RequestDispatcher：リクエストのディスパッチ
+`HttpServletResponse`は，HTTPのレスポンス・メッセージを組み立てるための多くのメソッドを提供しています。
+
+- ステータスライン
+    - `setStatus​(int sc)`，`sendError​(int sc, String msg)`，`sendRedirect​(String location)`など
+- ヘッダー
+    - `setHeader​(String name, String value)`，`addHeader​(String name, String value)`，`addCookie​(Cookie cookie)`など
+- ボディ
+    - `setContentType​(String type)`，`getWriter()`，`getOutputStream()`など
+
+##### ボディの生成
+
+デフォルトの，通常の応答（ステータスコード200）を返す場合は，ボディの送信とそのコンテンツタイプの設定が必須です。
+
+コンテンツタイプの設定は，送信するコンテンツの種類に応じたMIMEタイプの指定が必要です。指定は`Content-type`ヘッダーに反映され，ブラウザなどのクライアントが，受け取ったデータをどのように扱えばよいのかの決定に使用されます。
+
+Webアプリケーションで使用される主なMIMEタイプとしては，以下のようなものがあります。
+
+- テキスト・データ
+    - `text/html`
+        - HTML（HyperText Markup Language）ドキュメントに使用されます。
+        - ブラウザはHTMLタグを解釈し，ウェブページを適切に表示します。
+    - `text/plain`
+        - プレーンテキスト（フォーマットなしのテキスト）を表します。
+        - ブラウザは特別なフォーマットやマークアップを処理せず，そのまま表示します。
+    - `text/javascript`
+        - JavaScriptファイルに使用されます。
+        - JavaScriptはブラウザで実行され，動的なウェブページを作成するためのプログラミング言語です。
+    - `text/css`
+        - CSS（Cascading Style Sheets）ファイルに使用されます。
+        - ウェブページのスタイル（色，フォント，レイアウトなど）を指定するために使用されます。
+- 画像データ
+    - `image/jpeg`，`image/png`，`image/svg+xml`など
+        - ブラウザでは画像として表示されます。
+- 音声・動画データ
+    - `audio/mpeg`，`video/mp4`，`video/webm`など
+        - 音声や動画を送信する際に使用されます。
+- その他のデータ
+    - `application/pdf`
+        - PDF（Portable Document Format）ファイルに使用されます。
+    - `application/xml`
+        - XML（eXtensible Markup Language）ドキュメントに使用されます。
+        - データを構造化して保存・転送するための柔軟なマークアップ言語です。
+    - `application/json`
+        - JSON（JavaScript Object Notation）フォーマットのデータに使用されます。
+        - 軽量なデータ交換フォーマットとして，Web APIや設定ファイルなどで広く利用されています。
+    - `application/xhtml+xml`
+        - XHTML（eXtensible HyperText Markup Language）は，HTMLをより厳密なXMLベースの構文に基づいて再定義したものです。
+    - `application/octet-stream`
+        - 特定のサブタイプがないか明確でないバイナリデータに使用されます。
+        - 通常ブラウザは，ファイルを直接処理するのではなくダウンロードしてディスクに保存するための処理を行います。
+
+Servletからコンテンツタイプを設定するためには，`setContentType​(String type)`メソッドを使用します。
+
+``` java
+resp.setContentType​("application/xml");
+```
+
+テキスト・データを送信するためには，文字列で出力を行うJavaの`PrintWriter`を取得して送信します。`PrintWriter`を取得する前には，コンテンツタイプの`charset`か，`setCharacterEncoding​(String charset)`メソッドで文字コードを指定する必要があります。指定しない場合のデフォルトはISO-8859-1で，日本語などは表示できませんので，必ず指定してください。
+
+``` java
+resp.setContentType​("text/html; charset=UTF-8");
+PrintWriter writer = resp.getWriter();
+```
+
+または，
+
+``` java
+resp.setContentType​("text/html");
+resp.setCharacterEncoding​("UTF-8");
+PrintWriter writer = resp.getWriter();
+```
+
+その他のデータを送信するためには，バイト列として出力を行うJavaの`OutputStream`を取得して送信します。
+
+``` java
+resp.setContentType​("image/jpeg");
+OutputStream out = resp.getOutputStream();
+```
+
+{% note %}
+
+一般にHTTPでは，一つの通信コネクションで，複数のリクエスト・レスポンスがやりとりされます。
+
+レスポンスメッセージの中で，ヘッダーの終わりは空行で判断できます。ではボディーの終わりはどうやって判断するのでしょう？
+
+HTTP仕様では二つの方法が用意されています。
+
+- あらかじめContent-lengthヘッダーでボディーのバイト数を通知しておく
+- chunked転送エンコーディングを使用して，ボディの終了を通知する
+
+Servletで前者の方法を使用するには，`HttpServletResponse`のインスタンスの`setContentLength​(int len)`メソッドを使用してボディの長さを指定します。ただし，Servletの実行環境は，指定した長さで出力を打ち切ってくれたりはしません。きっちり指定した長さと同じサイズのデータを`PrintWriter`や`OutputStream`に送信するのは，アプリケーション開発者の責任です。
+
+`setContentLength​(int len)`を使用しないと，Servletの実行環境はchunked転送エンコーディングを使用してレスポンスメッセージのボディを送信します。
+
+chunked転送エンコーディングでは，送信するデータをいくつかの「チャンク」に分割して送信します。各チャンクには，先頭に16進数の数値でチャンクのサイズが記述されています。長さ0のチャンクの送信が，ボディの送信の終了を意味します。
+
+chunked転送エンコーディングは，送信する前にデータの全体のサイズが不明でもかまわないため，一般にWebアプリケーション開発者がコンテンツの長さを意識する必要はありません。
+
+{% endnote %}
+
+
+##### ヘッダの制御
+
+`HttpServletResponse`には，ヘッダーの設定を行うメソッドとして`addHeader​(String name, String value)`と`setHeader​(String name, String value)`の二つが提供されています。
+
+これらは，既存の同名のヘッダーがある場合の動作が異なります。`addHeader​`では，既存のヘッダーは有効のまま，追加で同名のヘッダーが設定されます。`setHeader​`は置き換えられます。
+
+日付のヘッダーを設定する`addDateHeader​(String name, long date)`，`	setDateHeader​(String name, long date)`，および整数のヘッダーを設定する`addIntHeader​(String name, int value)`，`setIntHeader​(String name, int value)`も提供されています。
+
+`Content-Language`ヘッダーを設定するための専用のメソッド`setLocale​(Locale loc)`もあります。
+
+ヘッダーの設定を安全に行うには，`getWriter()`や`getOutputStream()`で取得した出力先にデータを送信する前である必要があります。出力後に設定しようとすると，`IllegalStateException`で失敗する可能性があります。
+
+{% note %}
+
+`Content-Language`ヘッダーには注意が必要です。
+
+Libertyでは，アプリケーションが`setLocale​(Locale loc)`を呼び出さなかったときのデフォルトの言語は，アプリケーションサーバーを起動した環境の言語になります。日本語をあつかうアプリケーションを，英語をデフォルトの言語に設定したOSで起動すると，意図せず`Content-Language: en`のヘッダーがレスポンスに付加されることになります。
+
+この場合，日本語の画面にもかかわらず，ブラウザの英語から日本語の翻訳機能が有効になるなどの不具合が出ることがあります。
+
+これを解決するには，Libertyの構成ファイル`server.xml`で以下のように構成を行い，レスポンスから`Content-Language`ヘッダーを削除します。
+
+ ``` xml
+<httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443">
+    <headers remove="Content-Language" />
+</httpEndpoint>
+```
+
+{% endnote %}
+
+
+##### ステータスラインの制御
+
+通常のWebアプリケーションでは，ステータスコード200，正常応答以外を返すことはほとんどありません。が，何らかの理由でそのほかのステータスコードを返したいときに，使用するメソッドが`HttpServletResponse`では提供されています。
+
+`setStatus​(int sc)`は，正常応答である200番台，300番台のステータスコードを返す目的で使用されます。このメソッドを実行しても，それまで設定したヘッダーの操作などは有効です。また，このメソッド実行後も，ヘッダの操作やボディの出力をおこなうことができます。
+
+`sendError (int sc, String  msg)`および`sendError (int sc)`は，エラーの発生を意味する400番台，500番台のステータスコードを返す目的で使用されます。このメソッドを実行すると，それまで実行したコンテンツタイプの設定やヘッダーの設定は無効になる可能性があります。通常のボディの出力もできなくなります。サーバーで用意されたエラー画面や，アプリケーションの`web.xml`ファイルで定義されたカスタム・エラーページが出力されます。
+
+ステータスコード302（Found）を返すための専用のメソッド`sendRedirect​(String location)`も提供されています。302応答では，`Location:`ヘッダーでリダイレクト先のURLを指定する必要があるのですが，このメソッドを実行すると，応答が302に設定されると同時に自答的に引数のURLがヘッダーに設定されます。この応答を受け取ったブラウザは，画面を表示するために，あらためて`Location:`ヘッダーで指定されたURLにアクセスします。
+
+これらの全てのメソッドは，安全に使用するには，`getWriter()`や`getOutputStream()`で取得した出力先にデータを送信する前に実行する必要があります。出力後に実行しようとすると，`IllegalStateException`で失敗する可能性があります。
+
+{% note %}
+
+**Cookieの送受信**
+
+Cookieはクライアント（通常はWebブラウザ）に小さなデータ片を保存するために使用され，主にセッション管理，パーソナライゼーション，トラッキングなどの目的で使用されます。
+
+レスポンス・メッセージに，Cookieを追加してクライアントに保存させるには，以下のようなコードを記述します。
+
+``` java
+// 指定された名前と値を持つCookieのインスタンスを作成する
+Cookie cookie = new Cookie("username", "user123");
+// Cookieにさまざまな属性をセットする
+cookie.setMaxAge(60 * 60 * 24 * 7); // 1週間の有効期限
+cookie.setPath("/"); // アプリケーション全体で有効
+cookie.setSecure(true); // HTTPS経由でのみ送信される
+cookie.setHttpOnly(true); // JavaScriptからのアクセスを防ぐ
+// HttpServletResponseにCookieを追加する
+resp.addCookie(cookie);
+```
+
+リクエスト・メッセージに，指定されたCookieが存在するかをを調べるには，以下のようなコードを記述します。
+
+``` java
+String username = "";
+// HttpServletRequestからCookieの一覧を取得する
+Cookie[] cookies = request.getCookies();
+if (cookies != null) {
+    for (Cookie cookie : cookies) {
+        if ("username".equals(cookie.getName())) {
+            // 目的のCookieがみつかった
+            username = cookie.getValue();
+            break;
+        }
+    }
+}
+```
+
+{% endnote %}
 
 #### Servletとマルチスレッド，スコープ
 
-#### Servletフィルター
+Libertyや，その他のアプリケーションサーバーでは，多くのユーザーからのリクエストをマルチスレッドで並行して処理します。
+
+サーバーではServletのインスタンスを一つだけ生成し，複数のリクエストで共用します。そのため，Servletのインスタンス変数に保存した内容は，他のユーザーのクエストと共有されます。リクエストに固有の情報をインスタンス変数に保存すると，情報が他のリクエストに漏洩する危険がありますので，注意してください。
+
+リクエストに固有の情報は，サーブレットのメソッドで定義されたローカル変数に保存するか，`HttpServletRequest`の属性（attribute）として保存します。この属性のスコープを **リクエスト・スコープ** といいます。リクエスト・スコープは，リクエストの処理を開始してから，レスポンスを返すまで有効です。
+
+同じように，ユーザーのセッションに固有の情報は，`HttpSession`の属性として保存します。この属性のスコープを **セッション・スコープ** といいます。セッション・スコープは，セッションが開始してから無効化されるまで，あるいはタイムアウトするまで有効です。
+
+Webアプリケーション全体で共有する情報は，Servlet中から`getServletContext()`を実行して取得した`ServletContext`の属性として保存します。この属性のスコープを **アプリケーション・スコープ** といいます。アプリケーション・スコープは，アプリケーションが起動してから終了するまで有効です。また，サーバー内でだけ有効です。アプリケーションが複数のサーバーで分散実行されているときは，サーバーを超えて情報を共有することはできません。
+
+これらのスコープは，アプリケーションが実行されているスレッドと密接に関わっています。そのため，ユーザーが独自に開始した別スレッドにこれらのインスタンスを渡しても，その属性を正しく読み取ったり，メソッドを正常に実行することはできません。別スレッドで非同期処理を行うためには，Servletの非同期サーブレットの仕組みを利用したり，Concurrency Utility for Java/Jakarta EE仕様で提供される機能を利用したりするようにしてください。
 
 ### JSPとは
+
+#### RequestDispatcher：リクエストのディスパッチ
 
