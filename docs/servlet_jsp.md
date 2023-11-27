@@ -120,7 +120,7 @@ $ curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-app/hello
 
 {% note %}
 
-`curl`コマンドでHTTPSで接続する場合は，Libertyが自己署名証明書をしようしているため，証明書の検証に失敗して接続できません。
+`curl`コマンドでHTTPSで接続しようとすると，Libertyが自己署名証明書を使用しているため，証明書の検証に失敗して接続できません。
 
 ``` terminal
 $ curl https://localhost:9443/guide-app/hello
@@ -132,7 +132,7 @@ establish a secure connection to it. To learn more about this situation and
 how to fix it, please visit the web page mentioned above.
 ```
 
-失敗を無視して接続するためには`--insecure`オプションを指定します。
+検証失敗を無視して接続するためには`--insecure`オプションを指定します。
 
 ``` terminal
 $ curl --insecure https://localhost:9443/guide-app/hello
@@ -189,7 +189,7 @@ $ curl -v -H "Accept-Language: en-US" http://localhost:9080/guide-app/hello
 
 ヘッダーの`Vary:`は，クライアントが送信したどのヘッダーの情報をもとにレスポンスを変化させたかを通知します。
 
-この値は，結果をキャッシュする仕組みで利用されます。ここでは`Accept-Language`ヘッダーが同じ内容のリクエストに対してはレスポンスは同じとみなしてキャッシュを再利用してもよく，ヘッダーが異なるリクエストに対しては再利用してはいけない，ということを示しています。
+この値は，結果をキャッシュする仕組みで利用されます。ここでは`Accept-Language`ヘッダーが同じ内容のリクエストに対してはレスポンスは同じとみなしてキャッシュを再利用してもよく，このヘッダーが異なるリクエストに対しては再利用してはいけない，ということを示しています。
 
 {% endnote %}
 
@@ -596,11 +596,11 @@ public class HederServlet  extends HttpServlet {
 
 |メソッド定義|説明|
 |------------|----|
-|String getHeader​(String name)|指定された名前のヘッダーを取得します。同名のヘッダーが複数存在していれば最初の値を返します。存在していなければnullが返ります。|
-|Enumeration<String> getHeaders​(String name)|HTTP仕様では，同じ名前の複数のヘッダーの存在が許されています。このメソッドはそれらの全てを含んだEnumerationを返します。|
-|int getIntHeader​(String name)|指定された名前のヘッダーを数値として解釈して値を返します。存在していなければ-1が返ります。|
-|long getDateHeader​(String name)|指定された名前のヘッダーを日付として解釈してUNIX Epoch値を返します。存在していなければ-1が返ります。|
-|Enumeration<String> getHeaderNames()|リクエストに含まれているヘッダー名の一覧をEnumerationで取得します。|
+|`String getHeader​(String name)`|指定された名前のヘッダーを取得します。同名のヘッダーが複数存在していれば最初の値を返します。存在していなければ`null`が返ります。|
+|`Enumeration<String> getHeaders​(String name)`|HTTP仕様では，同じ名前の複数のヘッダーの存在が許されています。このメソッドはそれらの全てを含んだ`Enumeration`を返します。|
+|`int getIntHeader​(String name)`|指定された名前のヘッダーを数値として解釈して値を返します。存在していなければ-1が返ります。|
+|`long getDateHeader​(String name)`|指定された名前のヘッダーを日付として解釈してUNIX Epoch値を返します。存在していなければ-1が返ります。|
+|`Enumeration<String> getHeaderNames()`|リクエストに含まれているヘッダー名の一覧をEnumerationで取得します。|
 
 ##### パラメーターの読み取り
 
@@ -897,13 +897,17 @@ chunked転送エンコーディングは，送信する前にデータの全体�
 
 ##### ヘッダの制御
 
-`HttpServletResponse`には，ヘッダーの設定を行うメソッドとして`addHeader​(String name, String value)`と`setHeader​(String name, String value)`の二つが提供されています。
+`HttpServletResponse`のヘッダー関連のメソッドには以下のようなものがあります。
 
-これらは，既存の同名のヘッダーがある場合の動作が異なります。`addHeader​`では，既存のヘッダーは有効のまま，追加で同名のヘッダーが設定されます。`setHeader​`は置き換えられます。
-
-日付のヘッダーを設定する`addDateHeader​(String name, long date)`，`	setDateHeader​(String name, long date)`，および整数のヘッダーを設定する`addIntHeader​(String name, int value)`，`setIntHeader​(String name, int value)`も提供されています。
-
-`Content-Language`ヘッダーを設定するための専用のメソッド`setLocale​(Locale loc)`もあります。
+|メソッド定義|説明|
+|-------------|----|
+|`void addHeader​(String name, String value)`|ヘッダーを設定します。同名のヘッダーが既に存在していた場合，両方が有効になります。|
+|`void setHeader​(String name, String value)`|ヘッダーを設定します。同名のヘッダーが既に存在していた場合，新しい`value`で置き換えられます。|
+|`void addDateHeader​(String name, long date)`|日付のヘッダーを設定します。同名のヘッダーが既に存在していた場合，両方が有効になります。|
+|`void setDateHeader​(String name, long date)`|日付のヘッダーを設定します。同名のヘッダーが既に存在していた場合，新しい`date`で置き換えられます。|
+|`void addIntHeader​(String name, int value)`|整数のヘッダーを設定します。同名のヘッダーが既に存在していた場合，両方が有効になります。|
+|`void setIntHeader​(String name, int value)`|整数のヘッダーを設定します。同名のヘッダーが既に存在していた場合，新しい`value`で置き換えられます。|
+|`void setLocale​(Locale loc)`|`Content-Language`ヘッダーを設定します。|
 
 ヘッダーの設定を安全に行うには，`getWriter()`や`getOutputStream()`で取得した出力先にデータを送信する前である必要があります。出力後に設定しようとすると，`IllegalStateException`で失敗する可能性があります。
 
@@ -1354,6 +1358,19 @@ public class MessageServlet extends HttpServlet {
 ```
 
 `WEB-INF`というフォルダーにおいたJSPファイルは，クライアントからのリクエストで直接呼び出すことができません。後述するRequestDispatcherによるディスパッチでのみ利用できるようになります。Servletでの事前処理が必須のJSPファイルは，`WEB-INF`の下に置くというテクニックがよく使用されます。
+
+「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-app/message](http://localhost:9080/guide-app/message)にアクセスしてみましょう。以下のような画面が表示されたら成功です。
+
+![掲示板アプリケーションの初期画面](../images/servlet_jsp5.png)
+
+「名前」に名前を入れ，「メッセージ」に適当な文章を押して，「送信」を押してください。メッセージが一覧に表示されます。また，二回目以降は「名前」に自動的に同じ名前が入力されています。
+
+![掲示板にメッセージを追加](../images/servlet_jsp6.png)
+
+ブラウザでメニューから「新しいInPrivateウィンドウ」や「新規シークレットウィンドウ」などを開いて，別のセッションを開始してください。同じURL，[http://localhost:9080/guide-app/message](http://localhost:9080/guide-app/message)にアクセスすると，先ほどのウィンドウで入力したメッセージが見えています。別の名前でメッセージを追加することもできます。
+
+![別のユーザーで掲示板にアクセス](../images/servlet_jsp7.png)
+
 
 #### RequestDispatcher：リクエストのディスパッチ
 
