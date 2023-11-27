@@ -38,13 +38,13 @@ ServletはHTTPリクエストとレスポンスを直接扱うことができる
 
 実際の業務アプリケーションの構築にあたっては，フレームワークに隠蔽されて，Servletの機能をつかう機会は少なくなってるかもしれません。それでも，初学者がHTTP通信を利用したWebアプリケーションでは内部でなにがおこなわれているかを学習するにあたっては，現在でも有用な手段でしょう（またフレームワークでトラブルがあった場合も，内部で使用されているServletの知識があると，解決に役立つことが多々あります）。
 
-### サンプルServletの実装
+### Servletを実装してみよう
 
 `guide-app`にServletを実装します。
 
 `src/main/java/com/demo`フォルダーに`HelloServlet.java`というファイルを作成します。VS Codeのエクスプローラーで`java/com/demo/rest`の`demo`の部分を右クリックし「新しいファイル...」をクリックしてファイル名を入力します。
 
-作成したファイルに以下の内容を記述して保存します。Servletは，`HttpServlet`クラスを継承（extends）したクラスとして作成します。
+作成したファイルに以下の内容を記述して保存します。Servletは，`HttpServlet`クラスを継承（extends）したクラスとして作成します。`@WebServlet`｀をつけることで，実行環境にServletと認識されて，実行対象となります。
 
 ``` java
 package com.demo;
@@ -100,14 +100,14 @@ public class HelloServlet extends HttpServlet {
 コマンドプロンプトから`curl`コマンドを実行して，ヘッダをつけてLiberty上のServletにアクセスしてみます。
 
 ``` terminal
-> curl -H "Accept-Language: fr"  http://localhost:9080/guide-app/hello
+$ curl -H "Accept-Language: fr"  http://localhost:9080/guide-app/hello
 <!DOCTYPE html>
 <html>
 <head><title>Hello Servlet</title></head>
 <body>Bonjour, Open Liberty!</body>
 </html>
 
-> curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-app/hello
+$ curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-app/hello
 <!DOCTYPE html>
 <html>
 <head><title>Hello Servlet</title></head>
@@ -128,6 +128,41 @@ public class HelloServlet extends HttpServlet {
 開発者ツールの利用方法は使用しているブラウザによって異なるため，ここでは詳細には説明しません。開発者ツールを利用すると，下記の画面のようにサーバーとブラウザの通信内容を詳細に観察することができます。
 
 ![開発者ツールによるネットワーク通信の調査](../images/servlet_jsp4.png)
+
+また，`curl`コマンドに`-v`オプションをつけて実行しても，詳細な通信内容を表示することができます。
+
+``` terminal
+$ curl -v -H "Accept-Language: en-US" http://localhost:9080/guide-app/hello
+*   Trying 127.0.0.1:9080...
+* Connected to localhost (127.0.0.1) port 9080 (#0)
+> GET /guide-app/hello HTTP/1.1
+> Host: localhost:9080
+> User-Agent: curl/8.1.2
+> Accept: */*
+> Accept-Language: en-US
+> 
+< HTTP/1.1 200 OK
+< Vary: Accept-Language
+< Content-Type: text/html; charset=UTF-8
+< Content-Language: en-US
+< Transfer-Encoding: chunked
+< Date: Sun, 26 Nov 2023 23:27:04 GMT
+< 
+<!DOCTYPE html>
+<html>
+<head><title>Hello Servlet</title></head>
+<body>Hello, Open Liberty!</body>
+</html>
+* Connection #0 to host localhost left intact
+```
+
+{% note %}
+
+ヘッダーの`Vary:`は，クライアントが送信したどのヘッダーの情報をもとにレスポンスを変化させたかを通知します。
+
+この値は，結果をキャッシュする仕組みで利用されます。ここでは`Accept-Language`ヘッダーが同じ内容のリクエストに対してはレスポンスは同じとみなしてキャッシュを再利用してもよく，ヘッダーが異なるリクエストに対しては再利用してはいけない，ということを示しています。
+
+{% endnote %}
 
 先ほどのServletが実行された際に，クライアントであるブラウザからサーバーへは，以下のようなリクエストが送信されています。
 
@@ -672,7 +707,22 @@ session.setMaxInactiveInterval(300);
 
 ##### 分散環境でのHttpSession
 
-おなじWebアプリケーションが複数のサーバーで分散実行されているとき，それらのサーバー間でセッション内容を共有する仕組みがLibertyでは提供されています。
+Libertyでは，`HttpSession`内のオブジェクトをDBなどの外部ストレージに永続化し，複数のサーバーで共有する仕組みを提供しています。
+
+この機能を利用し，おなじWebアプリケーションを複数のサーバーで分散実行することで，システムの可用性は大きく向上します。一つのサーバープロセスが異常終了したとしても，他のサーバーで`HttpSession`の内容を引きつぎ，Webアプリケーションの操作を継続できるからです（`HttpSession`を引き継げないと，他のサーバーで処理を継続しようとしてもセッションを最初から作り直すことになるので，一般的にはログイン画面からやり直しになってしまいます）。
+
+また運用の自由度も増します。必要なときに自由にサーバーを再起動したり，負荷に応じてサーバーの台数を増減する，ということも，アプリケーション利用者に影響を与えることなく，可能になります。
+
+Libertyでは，セッションを永続化する仕組みとして以下の二つのFeatureを提供しています。
+
+- `sessionDatabase-1.0`
+    - DB（Db2，Oracle DB，PostgreSQLなどのRDBMS）を使用してセッションの永続化を行う
+    - `<dataSource>`を構成し，`<httpSessionDatabase>`で永続化の構成を行う
+- `sessionCache-1.0`
+    - JCacheに対応したソフトウェアを使用してセッションの永続化を行う
+    - `<cacheManager`を構成し，`<httpSessionCache>`で永続化の構成を行う
+
+後半の章で，`sessionDatabase-1.0`を使用した構成例について解説します。
 
 {% note %}
 
@@ -692,7 +742,7 @@ Set-Cookie: JSESSIONID=0000T7CLaNuryESXrWkaIyWGr_a:68798fcf-430a-41e9-9c9e-05bf1
 	- アプリケーションサーバーがメモリにキャッシュしているセッションのバージョン番号です。他のサーバーで処理が行われた時には，この数値が増えるようになっています。キャッシュのバージョン番号とつきあわせて，キャッシュが古くなっていることが検出されると，DBなどから最新のセッションが読み込まれます。
 - `T7CLaNuryESXrWkaIyWGr_a`：セッションID
 	- アプリケーションから見えているセッションID
-- `68798fcf-430a-41e9-9c9e-05bf1b608abf`：セッションの処理をしたサーバーの固有ID
+- `68798fcf-430a-41e9-9c9e-05bf1b608abf`：セッションの処理をしたサーバーのCloneID
 	- WebSphere Pluginなどで負荷分散を行っている場合，このIDをもとに，なるべく前回と同じサーバーに処理を割り振る（アフィニティ）ために使用されます。毎回異なるサーバーへリクエストが転送されると，メモリ上のキャッシュが効率的に利用できないからです。
 
 このように，セッションIDが変化しなくても，Libertyは状況に合わせて`JSESSIONID`を適宜，書き換えています。セッションIDを取得する必要がある場合は，Cookieから直接読み込むのではなく，APIを利用してください。
@@ -909,6 +959,136 @@ Webアプリケーション全体で共有する情報は，Servlet中から`get
 これらのスコープは，アプリケーションが実行されているスレッドと密接に関わっています。そのため，ユーザーが独自に開始した別スレッドにこれらのインスタンスを渡しても，その属性を正しく読み取ったり，メソッドを正常に実行することはできません。別スレッドで非同期処理を行うためには，Servletの非同期サーブレットの仕組みを利用したり，Concurrency Utility for Java/Jakarta EE仕様で提供される機能を利用したりするようにしてください。
 
 ### JSPとは
+
+JSP（Java Server Pages/Jakarta Server Pages）は，Servletと同様に，動的なウェブページを作成するための技術です。
+
+Servletは，基本的にJavaのソースコードとして実装します。出力するHTMLは，Javaのコードの中に文字列として埋めこんでいました。短いHTMLでしたらいいですが，長いHTMLを出力しようとすると，非常に見づらいコードになってしまいます（特にJava 15より前のJavaは，テキストブロックの機能が利用できず，コード中で改行を含んだ長い文字列を扱うのが苦手でした）。
+
+JSPは，逆にHTMLファイルとして実装します。そのなかに動的に変化する部分をJavaのコード片や特殊なタグを使用して埋めこんでいきます。HTMLを編集するオーサリングツールの成果物を取り込んで利用するのも容易なため，HTML画面を作成する場合にはJSPが多用されます。
+
+ServletとJSPは，組み合わせて利用する手段が多く提供されています。リクエストを処理し，サーバーのロジックを実装する部分をServletでJavaで記述し，表示のための画面をJSPで作成する，という役割分担がよく行われます。
+
+#### JSPとServletを組み合わせたアプリケーションを作成してみる
+
+``` java:MessageServlet.java
+package com.demo;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+@WebServlet("/message")
+public class MessageServlet extends HttpServlet {
+    //
+    public static class Message {
+        // インスタンス変数
+        private String name; // 投稿者の名前
+        private String content; // メッセージ内容
+        private LocalDateTime timestamp; // 投稿日時
+        // インスタンス変数はコンストラクターでだけ設定
+        public Message(String name, String content) {
+            this.name = name;
+            this.content = content;
+            this.timestamp = LocalDateTime.now();
+        }
+        // アクセスメソッドは必要となるgetterだけを定義
+        public String getName() {
+            return name;
+        }
+        public String getContent() {
+            return content;
+        }
+        public LocalDateTime getTimestamp() {
+            return timestamp;
+        }
+    }
+    private List<Message> messages = new ArrayList<>();
+
+    @Override
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) 
+        throws IOException, ServletException 
+    {
+        execute(req, resp);
+    }
+    @Override
+    public void doPost(HttpServletRequest req, HttpServletResponse resp)
+        throws IOException, ServletException 
+    {
+        execute(req, resp);
+    }
+    private void execute(HttpServletRequest req, HttpServletResponse resp)
+        throws IOException, ServletException 
+    {
+        
+        // パラメーターを取得
+        req.setCharacterEncoding("UTF-8");
+        String name = req.getParameter("name");
+        String content = req.getParameter("content");
+        // パラメーターが存在していれば，メッセージを追加
+        if (name != null && content != null) {
+            messages.add(new Message(name, content));
+            // ユーザー名は再入力しなくていいようにHttpSessionに保存しておく
+            HttpSession session = req.getSession();
+            session.setAttribute("name", name);
+        }
+        // リクエスト・スコープの属性にmessageListをセット
+        req.setAttribute("messageList", messages);
+        // 表示をJSPファイルにforwardして委譲
+        RequestDispatcher disp = req.getRequestDispatcher("/WEB-INF/messages.jsp");
+        disp.forward(req, resp);
+    }
+}
+```
+
+``` jsp
+<!DOCTYPE html>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<html>
+<head><title>掲示板</title></head>
+<body>
+
+<!-- 新規メッセージ追加フォーム -->
+<form action="./message" method="post">
+    <fieldset>
+        <legend>新規メッセージ追加</legend>
+        名前: <input type="text" name="name" value="${name}" required><br>
+        メッセージ: <textarea name="content" required></textarea><br>
+        <input type="submit" value="送信">
+    </fieldset>
+</form>
+
+<!-- メッセージ一覧表示 -->
+<h2>メッセージ一覧</h2>
+<table border="1">
+    <thead>
+        <tr>
+            <th>名前</th>
+            <th>メッセージ</th>
+            <th>時間</th>
+        </tr>
+    </thead>
+    <tbody>
+        <c:forEach var="message" items="${messageList}">
+        <tr>
+            <td>${message.name}</td>
+            <td>${message.content}</td>
+            <td>${message.timestamp}</td>
+        </tr>
+        </c:forEach>
+    </tbody>
+</table>
+```
+
 
 #### RequestDispatcher：リクエストのディスパッチ
 
