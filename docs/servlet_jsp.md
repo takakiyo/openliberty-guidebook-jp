@@ -1149,19 +1149,19 @@ JSPでは，`<%@`と`%>`で囲まれるディレクティブ（指示文）を�
 
 |変数名|型|
 |-------|--|
-|request|jakarta.servlet.http.HttpServletRequest|
-|response|jakarta.servlet.http.HttpServletResponse|
-|session|jakarta.servlet.http.HttpSession|
-|application|jakarta.servlet.ServletContext|
-|config|jakarta.servlet.ServletConfig|
+|`request`|jakarta.servlet.http.HttpServletRequest|
+|`response`|jakarta.servlet.http.HttpServletResponse|
+|`session`|jakarta.servlet.http.HttpSession|
+|`application`|jakarta.servlet.ServletContext|
+|`config`|jakarta.servlet.ServletConfig|
 
-また，JSP固有のオブジェクトもいくつか利用可能です。`pageContext`はJSPページ内で有効なコンテキストです。属性の保存やJSPの操作などができます。`out`はJSP内で出力に使用する
+また，JSP固有のオブジェクトもいくつか利用可能です。`pageContext`はJSPページ内で有効なコンテキストです。属性の保存やJSPの操作などができます。`out`はJSP内で出力に使用する`JspWriter`を提供します。`JspWriter`は，Servletで使用する`PrintWriter`と同様のメソッドを提供しますが，出力するメソッドに`throws IOException`が定義されていない，という違いがあります。
 
 |変数名|型|
 |-------|--|
-|pageContext|jakarta.servlet.jsp.PageContext|
-|out|jakarta.servlet.jsp.JspWriter|
-|page|java.lang.Object|
+|`pageContext`|jakarta.servlet.jsp.PageContext|
+|`out`|jakarta.servlet.jsp.JspWriter|
+|`page`|java.lang.Object|
 
 ##### 式（Expression）
 
