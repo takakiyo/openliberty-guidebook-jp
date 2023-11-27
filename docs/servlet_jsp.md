@@ -18,13 +18,14 @@
 </featureManager>
 ```
 
-これを以下のように書き換えて保存します。
+これを以下のように書き換えて保存します。ServletとJSP，SSL接続するためのTransport Securityだけが有効になります。
 
 ``` xml
 <!-- Enable features -->
 <featureManager>
     <feature>servlet-6.0</feature>
     <feature>pages-3.1</feature>
+    <feature>transportSecurity-1.0</feature>
 </featureManager>
 ```
 
@@ -116,6 +117,34 @@ $ curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-app/hello
 ```
 
 指定する言語によって，異なる挨拶が返ってきていることが確認できるかと思います。
+
+{% note %}
+
+`curl`コマンドでHTTPSで接続する場合は，Libertyが自己署名証明書をしようしているため，証明書の検証に失敗して接続できません。
+
+``` terminal
+$ curl https://localhost:9443/guide-app/hello
+curl: (60) SSL certificate problem: self signed certificate
+More details here: https://curl.se/docs/sslcerts.html
+
+curl failed to verify the legitimacy of the server and therefore could not
+establish a secure connection to it. To learn more about this situation and
+how to fix it, please visit the web page mentioned above.
+```
+
+失敗を無視して接続するためには`--insecure`オプションを指定します。
+
+``` terminal
+$ curl --insecure https://localhost:9443/guide-app/hello
+<!DOCTYPE html>
+<html>
+<head><title>Hello Servlet</title></head>
+<body>こんにちは、Open Liberty!</body>
+</html>
+```
+
+{% endnote %}
+
 
 #### HTTPリクエストとレスポンス
 
@@ -515,7 +544,11 @@ public class SnoopServlet extends HttpServlet {
 String userAgent = req.getHeader("User-Agent");
 ```
 
-受け取ったヘッダーの名前の一覧は，`getHeaderNames()`で取得できます。これをつかって，受け取ったヘッダーを全て列挙するサーブレットがこちらになります。
+受け取ったヘッダーの名前の一覧は，`getHeaderNames()`で取得できます。
+
+これをつかって，受け取ったヘッダーを全て列挙するServletを作ってみましょう。
+
+プロジェクトの`src/main/java/com/demo`フォルダーに`HederServlet.java`というファイルを作成し，以下の内容を記述して保存します。
 
 ``` java
 package com.demo;
@@ -944,6 +977,7 @@ if (cookies != null) {
 
 {% endnote %}
 
+
 #### Servletとマルチスレッド，スコープ
 
 Libertyや，その他のアプリケーションサーバーでは，多くのユーザーからのリクエストをマルチスレッドで並行して処理します。
@@ -958,6 +992,54 @@ Webアプリケーション全体で共有する情報は，Servlet中から`get
 
 これらのスコープは，アプリケーションが実行されているスレッドと密接に関わっています。そのため，ユーザーが独自に開始した別スレッドにこれらのインスタンスを渡しても，その属性を正しく読み取ったり，メソッドを正常に実行することはできません。別スレッドで非同期処理を行うためには，Servletの非同期サーブレットの仕組みを利用したり，Concurrency Utility for Java/Jakarta EE仕様で提供される機能を利用したりするようにしてください。
 
+
+#### Servletの初期化メソッド
+
+Servletのインスタンスがサーバー上で作成され，実際にサービスを開始する前に，実行環境によってServletの初期化メソッドの呼び出しが行われます。
+
+Servletの初期化が必要な場合は，コンストラクターで行うのではなく，初期化メソッドで実装してください。コンストラクターの実行時には，まだServletから機能を呼び出す前提となる各種のコンテキストの設定が完了していない可能性があるからです。
+
+初期化メソッドは二種類あります。引数として`ServletConfig`が渡されるものと，
+
+``` java
+@Override
+public void init​(ServletConfig config) throws ServletException {
+```
+
+引数がないものです。
+
+``` java
+@Override
+public void init​() throws ServletException {
+```
+
+必要に応じてどちらか一つをOverrideします。
+
+過去のServlet仕様では，Servletの実装には，Javaコードの作成と`web.xml`ファイルによる構成の両方が必要でした。`ServletConfig`は，主に`web.xml`で設定された内容を受け取るために使用されていました。ですが，最近のServlet仕様では，Servletの実装には（アノテーションを活用することで）Javaコードの作成のみですむようになっています。そのため，`ServletConfig`を引数に取った初期化メソッドは使用頻度が減ってきています。
+
+初期化メソッドは，最初のリクエストが来る前に一度だけ呼び出されます。初期化メソッドの処理が完了するまで，Servletの処理は開始されません。初期化メソッドにあまりに長い時間がかかる処理を記述すると，最初のリクエストが遅延しますので，注意してください。
+
+また，初期化メソッドで`ServletException`がthrowされると，Servletは無効化されます。
+
+{% note %}
+
+最初のリクエストが来る前，サーバー起動時にサーブレットの初期化を行う方法があります。
+
+まず，Libertyの構成ファイル`server.xml`で以下のように構成を行います。通常は最初のリクエストが来るまでWebアプリケーションの起動は遅延されますが，この設定をすることで，起動時に初期化が行われるようになります。
+
+``` xml
+<webContainer deferServletLoad="false" />
+```
+
+あわせて，初期化を行いたいServletの方にも，`@WebServlet`アノテーションに`loadOnStartup`の設定を追加します。`loadOnStartup`を設定されたServletが複数ある場合，数値が小さい順にServletの初期化が行われます。
+
+``` java
+@WebServlet(urlPatterns = "/hello", loadOnStartup = 100)
+```
+
+{% endnote %}
+
+
 ### JSPとは
 
 JSP（Java Server Pages/Jakarta Server Pages）は，Servletと同様に，動的なウェブページを作成するための技術です。
@@ -968,9 +1050,186 @@ JSPは，逆にHTMLファイルとして実装します。そのなかに動的�
 
 ServletとJSPは，組み合わせて利用する手段が多く提供されています。リクエストを処理し，サーバーのロジックを実装する部分をServletでJavaで記述し，表示のための画面をJSPで作成する，という役割分担がよく行われます。
 
-#### JSPとServletを組み合わせたアプリケーションを作成してみる
+JSPは，内部で動的にServletのJavaソースコードに変換され，Classファイルにコンパイルされ，Servletとして実行されています。
 
-``` java:MessageServlet.java
+{% note %}
+
+実際にどのようなJavaコードに変換されているかを調べたい場合には，Libertyの構成ファイル`server.xml`で以下のように構成を行います。これにより，動的に生成されたJavaソースコードのファイルが，コンパイル後も削除されずに残ります。
+
+``` xml
+<jspEngine keepGenerated="true" />
+```
+
+生成される場所は，`target/liberty/wlp/usr`の，更に相当奥のディレクトリで，動的に生成されるため環境によって異なります。`find`コマンドやWindowsのエクスプロラーで`*.java`を検索して場所を調べてください。
+
+``` terminal
+$ find . -name '*.java'
+```
+
+{% endnote %}
+
+
+#### JSPのなかにJavaのコードを埋めこむ
+
+Javaのコードを埋めこんだJSPを作成してみましょう。
+
+プロジェクトの`src/main/webapp`フォルダーに`context.jsp`というファイルを作成し，以下の内容を記述して保存します。
+
+``` jsp
+<!DOCTYPE html>
+<%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"
+    import="java.util.Enumeration" %>
+<html>
+<head><title>ServletContext Attributes</title></head>
+<body>
+<h1>ServletContext Attributes</h1>
+<%  Enumeration<String> names = application.getAttributeNames(); %>
+<dl>
+<%  while (names.hasMoreElements()) {
+        String name = names.nextElement(); %>
+            <dt><%= name %></dt>
+            <dd><%= application.getAttribute(name) %></dd>
+        </tr>
+<%  }   %>
+</dl>
+</body>
+</html>
+```
+
+「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-app/context.jsp](http://localhost:9080/guide-app/context.jsp)にアクセスしてみましょう。`ServletContext`設定された属性（attribute）の一覧が表示されます。
+
+##### ディレクティブ（Directive）
+
+JSPでは，`<%@`と`%>`で囲まれるディレクティブ（指示文）を使用してページの構成や動作を制御します。これらのディレクティブは、JSPがServletに変換される際に、コンパイラに対して特定の命令を与えるために使用されます。
+
+`page`ディレクティブは、JSPページに関する情報を設定します。主な属性としては以下のようなものがあります。
+
+- `contentType`
+    - ページのMIMEタイプと文字エンコーディングを指定します。
+    - 日本語環境では`text/html;charset=UTF-8`のようなcharsetの指定付きの設定が必須です。
+- `pageEncoding`
+    - JSP自体がどのような文字コードで記述されているかを指定します。
+    - トラブルを避けるためには，UTF-8でファイルを作成して，`UTF-8`を設定しましょう。
+- `import`
+    - 使用するJavaクラスをインポートします。
+    - デフォルトでは`java.lang.*`，`jakarta.servlet.*`，`jakarta.servlet.jsp.*`，および`jakarta.servlet.http.*`がインポートされています。これ以外のクラスを使用する場合は，この要素に記述します。
+    - 複数のクラスを`,`で区切って書くことができます。また，`import`属性はディレクティブ中に2回以上記述してもかまいません。
+- `session`
+    - ページ中で`HttpSession`を使用するかを指定します。
+    - デフォルトは`true`です。有効にした場合，セッションはJSP中で`session`の名前で参照できます。
+
+##### スクリプトレット（Scriptlet）
+
+スクリプトレットは，JSPファイル内に直接Javaコードを書くための方法です。
+
+スクリプトレットは`<%`と`%>`のタグで囲まれたコードブロックで構成されます。このコードは、Servletに変換された際にサービスメソッド内に挿入されます。
+
+``` jsp
+<%  Enumeration<String> names = application.getAttributeNames(); %>
+```
+
+ブロック開始や，終了を記述することもできます。`if`による条件分岐が可能ですし，`for`，`while`などのループを記述すると，その部分が繰り返し表示されます。
+
+``` jsp
+<%  while (names.hasMoreElements()) {
+        String name = names.nextElement(); %>
+
+<!-- 繰り返し実行される内容 -->
+
+<%  }   %>
+```
+
+ただ，ループや条件分岐をスクリプトレットで記述すると読みにくいJSPコードになってしまいます。可能であれば，後述のJSTLの機能を使用しましょう。
+
+スクリプトレット等で使用できる変数が，あらかじめ用意されています。まず，Servletで利用される各種のオブジェクトです。
+
+|変数名|型|
+|request|jakarta.servlet.http.HttpServletRequest|
+|response|jakarta.servlet.http.HttpServletResponse|
+|session|jakarta.servlet.http.HttpSession|
+|application|jakarta.servlet.ServletContext|
+|config|jakarta.servlet.ServletConfig|
+
+また，JSP固有のオブジェクトもいくつか利用可能です。`pageContext`はJSPページ内で有効なコンテキストです。属性の保存やJSPの操作などができます。`out`はJSP内で出力に使用する
+
+|変数名|型|
+|pageContext|jakarta.servlet.jsp.PageContext|
+|out|jakarta.servlet.jsp.JspWriter|
+|page|java.lang.Object|
+
+##### 式（Expression）
+
+JSP式は，Javaコードの値を直接出力するために使用されます。
+
+JSP式は`<%=`と`%>`のタグでJavaの式を囲んで記述します。内部に記述されたJavaの式の値が評価され，結果を文字列に変換した上で，その場所に出力されます。
+
+``` jsp
+<%= application.getAttribute(name) %>
+```
+
+##### 宣言（Declarations）
+
+宣言は，JSPページで使用するためのメソッドやインスタンス変数を定義するために使用されます。
+
+JSP式は`<%!`と`%>`のタグでJavaの式を囲んで記述します。定義したインスタンス変数は，JSPにアクセスする全てのユーザーのリクエスト間で共有されるので注意してください。
+
+``` jsp
+<%!
+int count = 0;
+public int getCount() {
+    return ++count;
+}
+%>
+```
+
+{% note %}
+
+JSP中には何種類かの方法でコメントを記述することができます。
+
+まず，HTMLのコメントを記述できます。この形式のコメントはブラウザの画面上では見えませんが，クライアントには送信されているので，利用者がソースを見ると内容が見えてしまいます。
+
+``` jsp
+<!-- HTMLコメント -->
+```
+
+また，HTMLコメント中でスクリプトレットなどを記述すると，その内容は実行されてしまします。
+
+``` jsp
+<!-- <% count += 1; %> このJavaコードは実行される -->
+```
+
+次にJSPのコメント。`<%--`と`--%>`のタグで囲んで記述します。この形式のコメントの中身は，クライアントにも送信されません。
+
+``` jsp
+<%-- HTMLコメント --%>
+```
+
+また，JSPコメント中でスクリプトレットなどを記述しても，その内容は実行ません。
+
+``` jsp
+<%-- <% count += 1; %> このJavaコードは実行されない --%>
+```
+
+また，スクリプトレット中には，通常のJavaのコメントを記述することができます。
+
+``` jsp
+<%  count += 1; /* Javaのコメント */
+    // Javaの1行コメント
+    if (count >= 10) {
+        count = 0;
+    }
+%>
+```
+
+{% endnote %}
+
+#### JSPとServletの連携
+
+JSPとServletを組み合わせたアプリケーションを作成してみましょう。
+
+プロジェクトの`src/main/java/com/demo`フォルダーに`MessageServlet.java`というファイルを作成し，以下の内容を記述して保存します。
+
+``` java
 package com.demo;
 
 import java.io.IOException;
@@ -988,19 +1247,19 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/message")
 public class MessageServlet extends HttpServlet {
-    //
+    // 掲示板のメッセージ
     public static class Message {
         // インスタンス変数
         private String name; // 投稿者の名前
         private String content; // メッセージ内容
         private LocalDateTime timestamp; // 投稿日時
-        // インスタンス変数はコンストラクターでだけ設定
+        // インスタンス変数はコンストラクターでだけ設定可能
         public Message(String name, String content) {
             this.name = name;
             this.content = content;
             this.timestamp = LocalDateTime.now();
         }
-        // アクセスメソッドは必要となるgetterだけを定義
+        // アクセスメソッドはgetterだけでsetterは定義しない
         public String getName() {
             return name;
         }
@@ -1011,6 +1270,7 @@ public class MessageServlet extends HttpServlet {
             return timestamp;
         }
     }
+    // メッセージの一覧をインスタンス変数で保持（全てのリクエストで共有される）
     private List<Message> messages = new ArrayList<>();
 
     @Override
@@ -1028,7 +1288,6 @@ public class MessageServlet extends HttpServlet {
     private void execute(HttpServletRequest req, HttpServletResponse resp)
         throws IOException, ServletException 
     {
-        
         // パラメーターを取得
         req.setCharacterEncoding("UTF-8");
         String name = req.getParameter("name");
@@ -1048,6 +1307,8 @@ public class MessageServlet extends HttpServlet {
     }
 }
 ```
+
+プロジェクトの`src/main/webapp`フォルダーに`WEB-INF`というフォルダーを新規作成します。このフォルダー`src/main/webapp/WEB-INF`に`messages.jsp`というファイルを作成し，以下の内容を記述して保存します。
 
 ``` jsp
 <!DOCTYPE html>
@@ -1087,8 +1348,120 @@ public class MessageServlet extends HttpServlet {
         </c:forEach>
     </tbody>
 </table>
+
+</body>
+</html>
 ```
 
+`WEB-INF`というフォルダーにおいたJSPファイルは，クライアントからのリクエストで直接呼び出すことができません。後述するRequestDispatcherによるディスパッチでのみ利用できるようになります。Servletでの事前処理が必須のJSPファイルは，`WEB-INF`の下に置くというテクニックがよく使用されます。
 
 #### RequestDispatcher：リクエストのディスパッチ
+
+`RequestDispatcher`は，Servlet APIで提供されている機能で，リクエストをサーバー内の別のリソース（サーブレット，JSP，HTMLファイルなど）に転送するために使用されます。Webアプリケーション内のコンポーネントで役割分担を行い，処理を委譲したり，他のサーブレットやJSPからの出力を現在のレスポンスに含める場合に使用されます。
+
+Servletでロジック処理を実行し，JSPで画面表示を行うためにも`RequestDispatcher`によるディスパッチが行われます。
+
+`RequestDispatcher`のインスタンスは，`HttpServletRequest`のインスタンスから`getRequestDispatcher(String path)`メソッドで取得します。指定する`path`は，アプリケーション内のパス（コンテキスト・ルートを含まないパス）になります。`RequestDispatcher`で指定するパスは，通常はリクエストの対象にならない`WEB-INF`や`META-INF`の下のリソースも指定できます。
+
+``` java
+RequestDispatcher dispatcher = req.getRequestDispatcher("path/to/resource");
+```
+
+処理を，ディスパッチ先に`forward`します。
+
+``` java
+dispatcher.forward(req, resp);
+```
+
+あるいは，ディスパッチ先の出力を`include`します。
+
+``` java
+dispatcher.include(req, resp);
+```
+
+`forward`を使用すると，制御は完全に新しいリソースに移り，呼び出し元のServletには戻りません。`forward`の実行前にレスポンスへの書き込みはするべきではありません。もし書き込まれた内容があった場合は，自動的にクリアされます。また，`forward`メソッドの実行後にも，レスポンスへの書き込みなどはできません。
+
+`include`では，現在のServletの処理が続行され、インクルードされたリソースの出力が現在のレスポンスに追加されます。既存のレスポンスコンテンツは保持されますし，`include`メソッドの実行後にも，レスポンスへの書き込みを継続することができます。
+
+Servletからの出力をJSPに委譲する際には，`forward`が使用されます。Servlet内では，レスポンスへの操作は原則として行いません。
+
+ServletからJSPに情報を伝達するには，リクエストスコープを利用します。つまり`HttpServletRequest`の属性（attribute）に必要な情報をセットします。
+
+``` java
+// リクエスト・スコープの属性にmessageListをセット
+req.setAttribute("messageList", messages);
+```
+
+#### EL式（Expression Language式）
+
+EL式は，JSP（やJSF，JavaServer Faces）で使用される技術で，さまざまなスコープで提供されるデータに簡単にアクセスし表示するために利用されます。
+
+EL式は，`${式}`の形で使用します。式の中では，リクエスト・スコープ，セッション・スコープ，アプリケーション・スコープの属性が変数として使用できます。
+
+たとえば，Servletの中でセッションの属性に保存した以下の値は，
+
+``` java
+session.setAttribute("name", name);
+```
+
+JSP中で`${name}`で値を参照できます。
+
+``` jsp
+名前: <input type="text" name="name" value="${name}" required><br>
+```
+
+また，プロパティへのアクセスも`.名前`で簡単にできます。
+
+`message`にクラス`Message`のインスタンスが代入されている状態で，`${message.name}`のように記述すると，アクセスメソッドが自動的に呼び出され，`message.getName()`の実行結果が表示されます。
+
+``` jsp
+<td>${message.name}</td>
+<td>${message.content}</td>
+<td>${message.timestamp}</td>
+```
+
+JSP中では，`$`および`#`がEL式として扱われるため，これらの文字を記述する際には，`\$`および`\#`の用にエスケープする必要があります。
+
+
+#### JSTL（Java/Jakarta Standard Tag Library）
+
+JSP中では，自身で追加のタグを実装し，ロジックや表示を細かく制御することができます。このような追加のタグをTag Libraryといいます。
+
+JSPでは，標準でいくつかのTag Libertyが用意されており，定義するだけで使用することができます。このデフォルトで提供されているTag LiberaryをJSTLといいます。
+
+JSTLでは，いくつかのTag Libertyのコレクションが提供されていますが，もっともよく使用されるのはCore Tag Libraryです。このコレクションでは，変数に値を設定する`<c:set>`，条件判断を行う`<c:if>`，コレクションや配列をループ処理する`<c:forEach>`などが利用できます。
+
+Core Tag Libraryを使用するには，JSPの冒頭に，以下のような定義を追加します。
+
+``` jsp
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+```
+
+`<c:forEach>`では，たとえば`var`で指定した変数に，`begin`から`end`までの数値を順に代入してループさせる，というような使い方ができます。
+
+以下の例では，100から110までの数値が出力されます。
+
+``` jsp
+<c:forEach var="i" begin="100" end="110">
+    ${i}
+</c:forEach>
+```
+
+また，`items`にEL式でイテレート可能なコレクション（`Iteratable`インターフェースを実装した`Collection`）や配列をあたえると，その要素を順次，変数に代入してループすることができます。
+
+``` java
+private List<Message> messages = new ArrayList<>();
+    ...
+req.setAttribute("messageList", messages);
+```
+
+``` jsp
+<c:forEach var="message" items="${messageList}">
+<tr>
+    <td>${message.name}</td>
+    <td>${message.content}</td>
+    <td>${message.timestamp}</td>
+</tr>
+</c:forEach>
+```
 
