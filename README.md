@@ -7,7 +7,7 @@ Open Libertyの日本語ガイドブックを提供するプロジェクトで�
 
 - [このガイドブックについて](docs/preface.md)
 - [Open Libertyとは](docs/aboutliberty.md)
-- Java EE/Jakarta EEとその重要性
+- [Java EE/Jakarta EEとその重要性](docs/jakartaee.md)
 
 やってみようOpen Libertyによる開発
 
