@@ -65,9 +65,9 @@ Java EE/Jakarta EEは，単なるフレームワークではなく，標準仕�
 
 ライブラリは特定の機能を提供するコードの集まりで，開発者が自分のアプリケーションに組み込むことができます。開発者はアプリケーションのコード内でライブラリを呼び出して必要な機能を利用します。ライブラリは「呼び出されるもの」であり，プログラムの流れに対して受動的な役割を持ちます。
 
-フレームワークはコードを書くためのルールやヘルパーを提供し，開発者はこれらのルールに従いながらアプリケーションを構築します。フレームワークは「呼び出すもの」であり，アプリケーションの流れを制御します。これは「Inversion of Control（制御の反転）」とも呼ばれ，アプリケーションのコードはフレームワークによって呼び出されます。
+フレームワークはコードを書くための枠組み，ルールやヘルパーを提供し，開発者はこれらのルールに従いながらアプリケーションを構築します。フレームワークは「呼び出すもの」であり，アプリケーションの流れを制御します。これは「Inversion of Control（制御の反転）」とも呼ばれ，アプリケーションのコードはフレームワークによって呼び出されます。
 
-これらは混在して使用されます。通常はフレームワークでも，アプリケーションから呼び出すライブラリ的な機能も提供しています。
+これらは混在して使用されます。たとえば，多くのフレームワークでは，枠組みだけではなく，アプリケーションから呼び出すことができるライブラリ的な機能も提供しています。
 
 {% endnote %}
 
@@ -95,6 +95,36 @@ Java EEからJakarta EEへの移行で，大きな変更が一つあります。
 コミュニティがJava EEの名称を使用するには，商標のライセンスに関する制限が存在したため，新しいプロジェクト名として「Jakarta EE」が採用されました。これにともなって，APIが提供されるクラスのパッケージ名も，`javax`の名前空間から`jakarta`の名前空間に変更になっています。既存のJava EEアプリケーションをJakarta EEに移行するには，この名前空間への移行が必要です。
 
 ただ前章にあるように，Libertyであれば，Java EEアプリケーションとJakarta EEアプリケーションの共存が可能ですので，段階的な移行が可能です。
+
+Libertyが対応しているJava EE/Jakarta EEのバージョンと，それぞれのバージョンの主な新機能は以下の通りです。
+
+- Java EE 7
+    - 2013年にOracle社より公開されました。
+    - JAX-RSが2.0にバージョンアップし，クライアントAPIや非同期処理のサポートが強化されました
+    - Java API for JSON Processing（JSON-P）が新規に追加され，JSONデータの生成，解析，変換を容易に行えるようになりました。
+    - JSFが2.2にバージョンアップし，CDIに対応したほか，HTML5対応も行われました。
+    - WebSocketが新規に追加され，リアルタイムWebアプリケーションの開発を容易にしました。
+    - Java Batchが新規に追加され，大規模データ処理のためのバッチ処理が可能になりました。
+    - Concurrency Utility for Java EEが新規に追加され，アプリケーションサーバー上でのマルチスレッド処理をサポートしました。
+    - CDI（Contexts and Dependency Injection）が1.1にバージョンアップし，より細かい制御と構成が可能になりました。
+- Java EE 8
+    - 2017年に公開されました。Oracle社より公開された，最後のJava EEです。
+    - Servletが4.0にバージョンアップし，HTTP/2に対応しました。
+    - Java API for JSON Binding（JSON-B） が新規に追加され，JSONデータとJavaオブジェクト間のマッピングが簡単になりました。
+    - Bean Validationが2.0にバージョンアップし，Java 8の機能（Optionalクラス，日付/時刻APIなど）のサポートが追加されました。
+- Jakarta EE 8
+    - 2019年にEclipse Foundationのワーキンググループによって公開されました。
+    - コミュニティによる仕様策定作業を試行するためのバージョンで，仕様の名称変更などが行われましたが，技術的にはJava EE 8と同一のものが提供されています。
+- Jakarta EE 9
+    - 2020年に公開されました。
+    - `javax.*`名前空間から`jakarta.*`名前空間への全面的な移行が行われました。
+    - JAX-RPCやJAXR，Java EE Management APIなど，非推奨となっていたAPIの削除が行われました。
+    - 2021年に9.1に更新され，バグの修正やJava 11との互換性向上がはかられました。
+— Jakarta EE 10
+    - 2022年に公開されました。
+    - 従来から提供されていたサブセット，Web Profileに加え，Core Profileが追加されました。MicroProfile対応のフレームワークでの利用が想定されています。
+    - CDIで，コンパイル時にのみ依存性の注入を行うサブセット，CDI Liteが追加されました。
+    - 多くの仕様がバージョンアップし，機能の改善が行われています。
 
 
 ### Java EE/Jakarta EEを構成する仕様群
@@ -160,13 +190,13 @@ JDBC（Java Database Connectivity）は，RDBMSへ接続しSQL実行を行う仕
 
 **CDI：Contexts and Dependency Injection** は，実行時に依存性を注入（Dependency Injection）する機能を提供します。また，注入するBeanのライフサイクルを管理し，リクエスト・セッション・アプリケーションなどのスコープ（コンテキスト）に応じたインスタンスの提供を行います。
 
-**CDI-lite** は，注入を実行時ではなくコンパイル時にのみ行うCDI仕様のサブセットです。GraalVMによるネイティブコンパイルなど，実行時の注入に必要なJavaのリフレクションの使用が限定される環境で利用されます。
+**CDI-Lite** は，注入を実行時ではなくコンパイル時にのみ行うCDI仕様のサブセットです。GraalVMによるネイティブコンパイルなど，実行時の注入に必要なJavaのリフレクションの使用が限定される環境で利用されます。
 
 #### RESTfulなWebサービスを実装する仕様
 
 **Jakarta RESTful Web Services** （JAX-RS：Java API for RESTful Web Services）は，RESTfulな呼び出しを介したシステム間連携の機能を提供するフレームワークです。
 
-**Jakarta JSON Binding** （JSONB）および **Jakarta JSON Processing** （JSONP）は，RESTfulなサービスで多用されるJSON形式の情報を扱うための手段を提供します。
+**Jakarta JSON Binding** （JSON-B）および **Jakarta JSON Processing** （JSON-P）は，RESTfulなサービスで多用されるJSON形式の情報を扱うための手段を提供します。
 
 #### SOAP通信によるWebサービスを実装する仕様
 
@@ -185,7 +215,7 @@ JDBC（Java Database Connectivity）は，RDBMSへ接続しSQL実行を行う仕
 #### セキュリティに関する仕様
 
 **Jakarta Security** （Java EE Security API），  
-**Jakarta Authentication** （JASPIC：Java Authentication Service Provider Interface for Containers），  
+**Jakarta Authentication** （JASPIC：Java Authentication Service Provider Interface for Containers），および  
 **Jakarta Authorization** （JACC：Java Authorization Contract for Containers）は，Java EE/Jakarta EEアプリケーションの認証・認可およびアクセス制御の仕組みを提供します。
 
 
@@ -201,4 +231,23 @@ JDBC（Java Database Connectivity）は，RDBMSへ接続しSQL実行を行う仕
 
 **Jakarta WebSocket** （WebSocket）は，ブラウザなどとのWebSocketをつかった双方向通信を提供します。
 
+
+### MicroProfileとは
+
+MicroProfileは，クラウドネイティブなマイクロサービス・アプリケーションの開発を容易にするためのテクノロジーを開発することを目的とした，Eclipse Foundationのオープンなプロジェクトです。
+
+MicroProfileは，Java EEやその後継のJakarta EEと密接に関係しています。2013年にJava EE 7が公開されて以降，Oracle社による仕様策定は停滞が続いていました。しかし，クラウドの利用やKubernetesなどのコンテナ環境の整備がすすみ，マイクロサービスのための技術の必要性はますます高まっていました。
+
+そこで2016年に有志によってEclipse Foundation内で立ち上げられたプロジェクトがMicroProfileです。初期のメンバーは，Red Hat，IBM，Payara，Tomitribeや，London Java Communityです。MicroProfileプロジェクトは，Java EEの仕様の一部を活用しながら，追加で多くの仕様を開発していきます。
+
+- Config：外部化された構成データの管理を容易にします。
+- Fault Tolerance：サービスが障害に対して回復力を持つように設計された機能を提供します。
+- Rest Client：RESTクライアントAPIを提供し、マイクロサービス間の通信をサポートします。
+- Metrics，Health：アプリケーションのパフォーマンスと健全性を監視するためのAPIを提供します。
+
+MicroProfile 4.1以前の仕様は`javax.*`名前空間のAPIをサポートしており，Java EE 7/8と互換性があります。
+
+MicroProfile 5.0以降の仕様は`jakarta.*`名前空間のAPIをサポートしており，Jakarta EE 9.1/10と互換性があります。
+
+Java EE/Jakarta EEと同様に，MicroProfileについても，多くのベンダーやOSSから実装が提供されています。Libertyも，もちろんMicroProfileをサポートしており，その機能を活用したアプリケーションを実行することができます。
 
