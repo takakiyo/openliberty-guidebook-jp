@@ -23,12 +23,15 @@ Open Libertyの日本語ガイドブックを提供するプロジェクトで�
 
 - [Open Libertyのディレクトリ構成](docs/dir.md)
 - [Open Libertyの構成ファイル](docs/config.md)
-- Open LibertyのMavenプロジェクト構成
-- アプリケーションのデプロイと運用: Open Libertyの機能
+- [Open LibertyのMavenプロジェクト構成](docs/maven.md)
+- サーバー環境のデプロイと運用: Open Libertyの機能
 
+<!--
 - 例外処理とバリデーション: Bean Validation
 - セキュリティと認証: Java EE Security API
 - テスト戦略: JUnitとArquillianによる単体テストと統合テスト
 - パフォーマンスチューニングと監視: MicroProfile MetricsとOpen Liberty
+ -->
+
 - まとめと次のステップ
 
