@@ -5,8 +5,8 @@ Open Liberty（ https://openliberty.io ）とは，IBMによって開発され�
 MicroProfile仕様に対応しており，高速かつ効率的なクラウドネイティブJavaマイクロサービスを構築することができます。また，Java EE，Jakarta EEにも対応しており，従来型のエンタープライズJavaアプリケーションをモダナイズするプラットフォームとしても利用できます。Spring Bootアプリケーションにも対応しており，高い負荷にも耐える高速なランタイムとして利用可能です。
 
 Open Libertyが対応している主な仕様（2023年10月現在）
-- Jakarta EE 9.1/10
 - Java EE 7/8
+- Jakarta EE 9.1/10
 - MicroProfile 1.0/1.2/1.3/1.4
 - MicroProfile 2.0/2.1/2.2
 - MicroProfile 3.0/3.2/3.3
