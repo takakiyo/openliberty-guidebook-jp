@@ -946,7 +946,7 @@ OutputStream out = resp.getOutputStream();
 >``` java
 >String username = "";
 >// HttpServletRequestからCookieの一覧を取得する
->Cookie[] cookies = request.getCookies();
+>Cookie[] cookies = req.getCookies();
 >if (cookies != null) {
 >    for (Cookie cookie : cookies) {
 >        if ("username".equals(cookie.getName())) {
