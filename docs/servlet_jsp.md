@@ -120,32 +120,29 @@ $ curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-app/hello
 
 指定する言語によって，異なる挨拶が返ってきていることが確認できるかと思います。
 
-{% note %}
-
-`curl`コマンドでHTTPSで接続しようとすると，Libertyが自己署名証明書を使用しているため，証明書の検証に失敗して接続できません。
-
-``` terminal
-$ curl https://localhost:9443/guide-app/hello
-curl: (60) SSL certificate problem: self signed certificate
-More details here: https://curl.se/docs/sslcerts.html
-
-curl failed to verify the legitimacy of the server and therefore could not
-establish a secure connection to it. To learn more about this situation and
-how to fix it, please visit the web page mentioned above.
-```
-
-検証失敗を無視して接続するためには`--insecure`オプションを指定します。
-
-``` terminal
-$ curl --insecure https://localhost:9443/guide-app/hello
-<!DOCTYPE html>
-<html>
-<head><title>Hello Servlet</title></head>
-<body>こんにちは、Open Liberty!</body>
-</html>
-```
-
-{% endnote %}
+> [!TIP]
+>`curl`コマンドでHTTPSで接続しようとすると，Libertyが自己署名証明書を使用しているため，証明書の検証に失敗して接続できません。
+>
+>``` terminal
+>$ curl https://localhost:9443/guide-app/hello
+>curl: (60) SSL certificate problem: self signed certificate
+>More details here: https://curl.se/docs/sslcerts.html
+>
+>curl failed to verify the legitimacy of the server and therefore could not
+>establish a secure connection to it. To learn more about this situation and
+>how to fix it, please visit the web page mentioned above.
+>```
+>
+>検証失敗を無視して接続するためには`--insecure`オプションを指定します。
+>
+>``` terminal
+>$ curl --insecure https://localhost:9443/guide-app/hello
+><!DOCTYPE html>
+><html>
+><head><title>Hello Servlet</title></head>
+><body>こんにちは、Open Liberty!</body>
+></html>
+>```
 
 
 #### HTTPリクエストとレスポンス
@@ -187,13 +184,10 @@ $ curl -v -H "Accept-Language: en-US" http://localhost:9080/guide-app/hello
 * Connection #0 to host localhost left intact
 ```
 
-{% note %}
-
-ヘッダーの`Vary:`は，クライアントが送信したどのヘッダーの情報をもとにレスポンスを変化させたかを通知します。
-
-この値は，結果をキャッシュする仕組みで利用されます。ここでは`Accept-Language`ヘッダーが同じ内容のリクエストに対してはレスポンスは同じとみなしてキャッシュを再利用してもよく，このヘッダーが異なるリクエストに対しては再利用してはいけない，ということを示しています。
-
-{% endnote %}
+> [!NOTE]
+>ヘッダーの`Vary:`は，クライアントが送信したどのヘッダーの情報をもとにレスポンスを変化させたかを通知します。
+>
+>この値は，結果をキャッシュする仕組みで利用されます。ここでは`Accept-Language`ヘッダーが同じ内容のリクエストに対してはレスポンスは同じとみなしてキャッシュを再利用してもよく，このヘッダーが異なるリクエストに対しては再利用してはいけない，ということを示しています。
 
 先ほどのServletが実行された際に，クライアントであるブラウザからサーバーへは，以下のようなリクエストが送信されています。
 
@@ -309,15 +303,12 @@ Webアプリケーション内のパスのマッピングは，Javaコード内�
 
 いずれにも該当しないパスが要求された場合，`webapp`フォルダーの中のコンテンツから一致するものが検索され，見つかればそのファイルがそのまま送信されます。
 
-{% note %}
-
-マッピングの例外が，`WEB-INF`と`META-INF`です。これらのフォルダーの中のコンテンツは，リクエストとのマッチ対象になりません。これらのフォルダーの中身が外部からのURLの指定で呼び出されることはありません。
-
-`WEB-INF`は，Webアプリケーションの構成情報やServletを構成するJavaのクラスファイル，そこから呼び出されるライブラリなどが格納されます。
-
-`META-INF`は，Javaのアーカイブに共通の設定ファイルやメタ情報が格納されます。
-
-{% endnote %}
+> [!NOTE]
+>マッピングの例外が，`WEB-INF`と`META-INF`です。これらのフォルダーの中のコンテンツは，リクエストとのマッチ対象になりません。これらのフォルダーの中身が外部からのURLの指定で呼び出されることはありません。
+>
+>`WEB-INF`は，Webアプリケーションの構成情報やServletを構成するJavaのクラスファイル，そこから呼び出されるライブラリなどが格納されます。
+>
+>`META-INF`は，Javaのアーカイブに共通の設定ファイルやメタ情報が格納されます。
 
 
 #### GETリクエストとPOSTリクエスト
@@ -348,29 +339,26 @@ HTTPリクエストにおけるメソッドにはいくつもの種類があり�
 
 一般的にWebアプリケーションで使用されるのはGETとPOSTメソッドです。
 
-{% note %}
-
-HTTPのメソッドで重要な概念として冪等性と安全性があります。
-
-**冪等性（Idempotency）** とは，同じリクエストを一度だけ実行しても二度以上実行しても，その結果が初回と同じであることを保証します。つまり，リクエストの繰り返しが追加の副作用を引き起こさないことを意味します。
-
-GET，HEAD，PUT，DELETEは冪等なメソッドです。たとえば，同じリソースに対するDELETEリクエストを何度実行しても，最初の成功したリクエスト以降は何も変化しません。
-
-POSTは冪等ではありません。同じPOSTリクエストを繰り返すと，新しいリソースが何度も作成される可能性があります。
-
-**安全性（Safety）** とは，サーバー上のリソースの状態を変更しないことを保証します。これらのメソッドは，データの取得や読み取りに使用され，データの作成，更新，削除などの書き込み操作を行いません。
-
-GET，HEADなどは安全なメソッドです。これらは情報の取得のみを目的としており，サーバー側のリソースの状態を変更しません。
-
-POST，PUT，DELETEなどは安全ではありません。これらはリソースの状態を変更するために使用されます。
-
-ブラウザやHTTPリクエストを中継，キャッシュする中間プログラムは，これらのメソッドの特性に応じた動作をします。たとえば，ブラウザでGETで表示したページでリロードを実行すると，何の警告もなく再度画面が表示されます（GETメソッドは安全なので，繰り返し要求を送ってもサーバーの状態を変更する心配がないからです）。ですが，ブラウザでPOSTで表示したページでリロードを試みると，安全ではないリクエストを再度実行してもいいのか，確認の画面が表示されます。
-
-Webアプリケーションを実装するさいには，これらのHTTPメソッドに応じたアプリケーションの挙動の原則を守ることが重要です。
-
-ただ，あくまで原則です。GETでサーバー側の状態を一切変更していけない，というわけではありません。安全な変更ならば構いません。たとえば，何回アクセスしたかを表示するアクセスカウンターなどは，表示するたびに数字が増えますが，何回でも安全にリクエストを送信することができますので，GETでリクエストを処理しても構いません。
-
-{% endnote %}
+> [!NOTE]
+>HTTPのメソッドで重要な概念として冪等性と安全性があります。
+>
+>**冪等性（Idempotency）** とは，同じリクエストを一度だけ実行しても二度以上実行しても，その結果が初回と同じであることを保証します。つまり，リクエストの繰り返しが追加の副作用を引き起こさないことを意味します。
+>
+>GET，HEAD，PUT，DELETEは冪等なメソッドです。たとえば，同じリソースに対するDELETEリクエストを何度実行しても，最初の成功したリクエスト以降は何も変化しません。
+>
+>POSTは冪等ではありません。同じPOSTリクエストを繰り返すと，新しいリソースが何度も作成される可能性があります。
+>
+>**安全性（Safety）** とは，サーバー上のリソースの状態を変更しないことを保証します。これらのメソッドは，データの取得や読み取りに使用され，データの作成，更新，削除などの書き込み操作を行いません。
+>
+>GET，HEADなどは安全なメソッドです。これらは情報の取得のみを目的としており，サーバー側のリソースの状態を変更しません。
+>
+>POST，PUT，DELETEなどは安全ではありません。これらはリソースの状態を変更するために使用されます。
+>
+>ブラウザやHTTPリクエストを中継，キャッシュする中間プログラムは，これらのメソッドの特性に応じた動作をします。たとえば，ブラウザでGETで表示したページでリロードを実行すると，何の警告もなく再度画面が表示されます（GETメソッドは安全なので，繰り返し要求を送ってもサーバーの状態を変更する心配がないからです）。ですが，ブラウザでPOSTで表示したページでリロードを試みると，安全ではないリクエストを再度実行してもいいのか，確認の画面が表示されます。
+>
+>Webアプリケーションを実装するさいには，これらのHTTPメソッドに応じたアプリケーションの挙動の原則を守ることが重要です。
+>
+>ただ，あくまで原則です。GETでサーバー側の状態を一切変更していけない，というわけではありません。安全な変更ならば構いません。たとえば，何回アクセスしたかを表示するアクセスカウンターなどは，表示するたびに数字が増えますが，何回でも安全にリクエストを送信することができますので，GETでリクエストを処理しても構いません。
 
 `HttpServlet`クラスには，これらの7つのHTTPメソッドを処理するためのメソッドが定義されており，実際のServletではこれらのメソッドをオーバーライド（Override）して，処理内容を記述します。`GET`メソッドのリクエストを処理するのは`doGet`，`POST`メソッドを処理するのは`doPost`，というようなメソッドが定義されています。
 
@@ -682,19 +670,17 @@ HTTPは，ステートレスなプロトコルです。サーバーとブラウ�
 HttpSession session = req.getSession();
 ```
 
-{% note %}
+> [!NOTE]
+>`getSession()`メソッドには，引数なしのものと，`boolean`の引数を取るものがあります。
+>
+>引数を取るものは，現在のセッションに既存の`HttpSession`のインスタンスが存在しないときに，新規に作成するかを指示します。以下のように実行すると，既存のインスタンスがあるときにのみ`HttpSession`が返され，存在しなければ`null`が返ります。
+>
+>``` java
+>HttpSession session = req.getSession(false);
+>```
+>
+>引数なしのメソッドは，`getSession(true)`と同じ意味です。既存の`HttpSession`が存在しなければ新規のインスタンスが生成されて返されます。
 
-`getSession()`メソッドには，引数なしのものと，`boolean`の引数を取るものがあります。
-
-引数を取るものは，現在のセッションに既存の`HttpSession`のインスタンスが存在しないときに，新規に作成するかを指示します。以下のように実行すると，既存のインスタンスがあるときにのみ`HttpSession`が返され，存在しなければ`null`が返ります。
-
-``` java
-HttpSession session = req.getSession(false);
-```
-
-引数なしのメソッドは，`getSession(true)`と同じ意味です。既存の`HttpSession`が存在しなければ新規のインスタンスが生成されて返されます。
-
-{% endnote %}
 
 ##### 属性（attribute）の読み書き
 
@@ -759,30 +745,28 @@ Libertyでは，セッションを永続化する仕組みとして以下の二�
 
 後半の章で，`sessionDatabase-1.0`を使用した構成例について解説します。
 
-{% note %}
+> [!NOTE]
+>**セッションの追跡メカニズム**
+>
+>アプリケーションサーバーがクライアントからのセッションを追跡するためには，一般的にCookieが使用されます。通常は、`HttpSession`のインスタンスが作成されたときにセッションIDをふくんだ文字列がクライアントのCookieに設定されます。以降は，クライアントから送信されるCookieに含まれるセッションIDをもとにトラッキングが行われます。
+>
+>CookieにセッションIDを保存するための名前は，Servlet仕様で`JSESSIONID`と決められています。この文字列は，特別な事情がない限り，変更しない方が安全です。
+>
+>LibertyがCookieに保存する文字列は，以下のような構造をしています。
+>
+>```
+>Set-Cookie: JSESSIONID=0000T7CLaNuryESXrWkaIyWGr_a:68798fcf-430a-41e9-9c9e-05bf1b608abf; Path=/; HttpOnly
+>```
+>
+>- `0000`：バージョン番号
+>	- アプリケーションサーバーがメモリにキャッシュしているセッションのバージョン番号です。他のサーバーで処理が行われた時には，この数値が増えるようになっています。キャッシュのバージョン番号とつきあわせて，キャッシュが古くなっていることが検出されると，DBなどから最新のセッションが読み込まれます。
+>- `T7CLaNuryESXrWkaIyWGr_a`：セッションID
+>	- アプリケーションから見えているセッションID
+>- `68798fcf-430a-41e9-9c9e-05bf1b608abf`：セッションの処理をしたサーバーのCloneID
+>	- WebSphere Pluginなどで負荷分散を行っている場合，このIDをもとに，なるべく前回と同じサーバーに処理を割り振る（アフィニティ）ために使用されます。毎回異なるサーバーへリクエストが転送されると，メモリ上のキャッシュが効率的に利用できないからです。
+>
+>このように，セッションIDが変化しなくても，Libertyは状況に合わせて`JSESSIONID`を適宜，書き換えています。セッションIDを取得する必要がある場合は，Cookieから直接読み込むのではなく，APIを利用してください。
 
-**セッションの追跡メカニズム**
-
-アプリケーションサーバーがクライアントからのセッションを追跡するためには，一般的にCookieが使用されます。通常は、`HttpSession`のインスタンスが作成されたときにセッションIDをふくんだ文字列がクライアントのCookieに設定されます。以降は，クライアントから送信されるCookieに含まれるセッションIDをもとにトラッキングが行われます。
-
-CookieにセッションIDを保存するための名前は，Servlet仕様で`JSESSIONID`と決められています。この文字列は，特別な事情がない限り，変更しない方が安全です。
-
-LibertyがCookieに保存する文字列は，以下のような構造をしています。
-
-```
-Set-Cookie: JSESSIONID=0000T7CLaNuryESXrWkaIyWGr_a:68798fcf-430a-41e9-9c9e-05bf1b608abf; Path=/; HttpOnly
-```
-
-- `0000`：バージョン番号
-	- アプリケーションサーバーがメモリにキャッシュしているセッションのバージョン番号です。他のサーバーで処理が行われた時には，この数値が増えるようになっています。キャッシュのバージョン番号とつきあわせて，キャッシュが古くなっていることが検出されると，DBなどから最新のセッションが読み込まれます。
-- `T7CLaNuryESXrWkaIyWGr_a`：セッションID
-	- アプリケーションから見えているセッションID
-- `68798fcf-430a-41e9-9c9e-05bf1b608abf`：セッションの処理をしたサーバーのCloneID
-	- WebSphere Pluginなどで負荷分散を行っている場合，このIDをもとに，なるべく前回と同じサーバーに処理を割り振る（アフィニティ）ために使用されます。毎回異なるサーバーへリクエストが転送されると，メモリ上のキャッシュが効率的に利用できないからです。
-
-このように，セッションIDが変化しなくても，Libertyは状況に合わせて`JSESSIONID`を適宜，書き換えています。セッションIDを取得する必要がある場合は，Cookieから直接読み込むのではなく，APIを利用してください。
-
-{% endnote %}
 
 ##### HttpSessionとパフォーマンス
 
@@ -875,26 +859,23 @@ resp.setContentType​("image/jpeg");
 OutputStream out = resp.getOutputStream();
 ```
 
-{% note %}
-
-一般にHTTPでは，一つの通信コネクションで，複数のリクエスト・レスポンスがやりとりされます。
-
-レスポンスメッセージの中で，ヘッダーの終わりは空行で判断できます。ではボディーの終わりはどうやって判断するのでしょう？
-
-HTTP仕様では二つの方法が用意されています。
-
-- あらかじめContent-lengthヘッダーでボディーのバイト数を通知しておく
-- chunked転送エンコーディングを使用して，ボディの終了を通知する
-
-Servletで前者の方法を使用するには，`HttpServletResponse`のインスタンスの`setContentLength​(int len)`メソッドを使用してボディの長さを指定します。ただし，Servletの実行環境は，指定した長さで出力を打ち切ってくれたりはしません。きっちり指定した長さと同じサイズのデータを`PrintWriter`や`OutputStream`に送信するのは，アプリケーション開発者の責任です。
-
-`setContentLength​(int len)`を使用しないと，Servletの実行環境はchunked転送エンコーディングを使用してレスポンスメッセージのボディを送信します。
-
-chunked転送エンコーディングでは，送信するデータをいくつかの「チャンク」に分割して送信します。各チャンクには，先頭に16進数の数値でチャンクのサイズが記述されています。長さ0のチャンクの送信が，ボディの送信の終了を意味します。
-
-chunked転送エンコーディングは，送信する前にデータの全体のサイズが不明でもかまわないため，一般にWebアプリケーション開発者がコンテンツの長さを意識する必要はありません。
-
-{% endnote %}
+> [!NOTE]
+>一般にHTTPでは，一つの通信コネクションで，複数のリクエスト・レスポンスがやりとりされます。
+>
+>レスポンスメッセージの中で，ヘッダーの終わりは空行で判断できます。ではボディーの終わりはどうやって判断するのでしょう？
+>
+>HTTP仕様では二つの方法が用意されています。
+>
+>- あらかじめContent-lengthヘッダーでボディーのバイト数を通知しておく
+>- chunked転送エンコーディングを使用して，ボディの終了を通知する
+>
+>Servletで前者の方法を使用するには，`HttpServletResponse`のインスタンスの`setContentLength​(int len)`メソッドを使用してボディの長さを指定します。ただし，Servletの実行環境は，指定した長さで出力を打ち切ってくれたりはしません。きっちり指定した長さと同じサイズのデータを`PrintWriter`や`OutputStream`に送信するのは，アプリケーション開発者の責任です。
+>
+>`setContentLength​(int len)`を使用しないと，Servletの実行環境はchunked転送エンコーディングを使用してレスポンスメッセージのボディを送信します。
+>
+>chunked転送エンコーディングでは，送信するデータをいくつかの「チャンク」に分割して送信します。各チャンクには，先頭に16進数の数値でチャンクのサイズが記述されています。長さ0のチャンクの送信が，ボディの送信の終了を意味します。
+>
+>chunked転送エンコーディングは，送信する前にデータの全体のサイズが不明でもかまわないため，一般にWebアプリケーション開発者がコンテンツの長さを意識する必要はありません。
 
 
 ##### ヘッダの制御
@@ -913,23 +894,20 @@ chunked転送エンコーディングは，送信する前にデータの全体�
 
 ヘッダーの設定を安全に行うには，`getWriter()`や`getOutputStream()`で取得した出力先にデータを送信する前である必要があります。出力後に設定しようとすると，`IllegalStateException`で失敗する可能性があります。
 
-{% note %}
-
-`Content-Language`ヘッダーには注意が必要です。
-
-Libertyでは，アプリケーションが`setLocale​(Locale loc)`を呼び出さなかったときのデフォルトの言語は，アプリケーションサーバーを起動した環境の言語になります。日本語をあつかうアプリケーションを，英語をデフォルトの言語に設定したOSで起動すると，意図せず`Content-Language: en`のヘッダーがレスポンスに付加されることになります。
-
-この場合，日本語の画面にもかかわらず，ブラウザの英語から日本語の翻訳機能が有効になるなどの不具合が出ることがあります。
-
-これを解決するには，Libertyの構成ファイル`server.xml`で以下のように構成を行い，レスポンスから`Content-Language`ヘッダーを削除します。
-
- ``` xml
-<httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443">
-    <headers remove="Content-Language" />
-</httpEndpoint>
-```
-
-{% endnote %}
+> [!TIP]
+>`Content-Language`ヘッダーには注意が必要です。
+>
+>Libertyでは，アプリケーションが`setLocale​(Locale loc)`を呼び出さなかったときのデフォルトの言語は，アプリケーションサーバーを起動した環境の言語になります。日本語をあつかうアプリケーションを，英語をデフォルトの言語に設定したOSで起動すると，意図せず`Content-Language: en`のヘッダーがレスポンスに付加されることになります。
+>
+>この場合，日本語の画面にもかかわらず，ブラウザの英語から日本語の翻訳機能が有効になるなどの不具合が出ることがあります。
+>
+>これを解決するには，Libertyの構成ファイル`server.xml`で以下のように構成を行い，レスポンスから`Content-Language`ヘッダーを削除します。
+>
+> ``` xml
+><httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443">
+>    <headers remove="Content-Language" />
+></httpEndpoint>
+>```
 
 
 ##### ステータスラインの制御
@@ -944,44 +922,41 @@ Libertyでは，アプリケーションが`setLocale​(Locale loc)`を呼び�
 
 これらの全てのメソッドは，安全に使用するには，`getWriter()`や`getOutputStream()`で取得した出力先にデータを送信する前に実行する必要があります。出力後に実行しようとすると，`IllegalStateException`で失敗する可能性があります。
 
-{% note %}
-
-**Cookieの送受信**
-
-Cookieはクライアント（通常はWebブラウザ）に小さなデータ片を保存するために使用され，主にセッション管理，パーソナライゼーション，トラッキングなどの目的で使用されます。
-
-レスポンス・メッセージに，Cookieを追加してクライアントに保存させるには，以下のようなコードを記述します。
-
-``` java
-// 指定された名前と値を持つCookieのインスタンスを作成する
-Cookie cookie = new Cookie("username", "user123");
-// Cookieにさまざまな属性をセットする
-cookie.setMaxAge(60 * 60 * 24 * 7); // 1週間の有効期限
-cookie.setPath("/"); // アプリケーション全体で有効
-cookie.setSecure(true); // HTTPS経由でのみ送信される
-cookie.setHttpOnly(true); // JavaScriptからのアクセスを防ぐ
-// HttpServletResponseにCookieを追加する
-resp.addCookie(cookie);
-```
-
-リクエスト・メッセージに，指定されたCookieが存在するかをを調べるには，以下のようなコードを記述します。
-
-``` java
-String username = "";
-// HttpServletRequestからCookieの一覧を取得する
-Cookie[] cookies = request.getCookies();
-if (cookies != null) {
-    for (Cookie cookie : cookies) {
-        if ("username".equals(cookie.getName())) {
-            // 目的のCookieがみつかった
-            username = cookie.getValue();
-            break;
-        }
-    }
-}
-```
-
-{% endnote %}
+> [!TIP]
+>**Cookieの送受信**
+>
+>Cookieはクライアント（通常はWebブラウザ）に小さなデータ片を保存するために使用され，主にセッション管理，パーソナライゼーション，トラッキングなどの目的で使用されます。
+>
+>レスポンス・メッセージに，Cookieを追加してクライアントに保存させるには，以下のようなコードを記述します。
+>
+>``` java
+>// 指定された名前と値を持つCookieのインスタンスを作成する
+>Cookie cookie = new Cookie("username", "user123");
+>// Cookieにさまざまな属性をセットする
+>cookie.setMaxAge(60 * 60 * 24 * 7); // 1週間の有効期限
+>cookie.setPath("/"); // アプリケーション全体で有効
+>cookie.setSecure(true); // HTTPS経由でのみ送信される
+>cookie.setHttpOnly(true); // JavaScriptからのアクセスを防ぐ
+>// HttpServletResponseにCookieを追加する
+>resp.addCookie(cookie);
+>```
+>
+>リクエスト・メッセージに，指定されたCookieが存在するかをを調べるには，以下のようなコードを記述します。
+>
+>``` java
+>String username = "";
+>// HttpServletRequestからCookieの一覧を取得する
+>Cookie[] cookies = request.getCookies();
+>if (cookies != null) {
+>    for (Cookie cookie : cookies) {
+>        if ("username".equals(cookie.getName())) {
+>            // 目的のCookieがみつかった
+>            username = cookie.getValue();
+>            break;
+>        }
+>    }
+>}
+>```
 
 
 #### Servletとマルチスレッド，スコープ
@@ -1027,23 +1002,20 @@ public void init​() throws ServletException {
 
 また，初期化メソッドで`ServletException`がthrowされると，Servletは無効化されます。
 
-{% note %}
-
-最初のリクエストが来る前，サーバー起動時にサーブレットの初期化を行う方法があります。
-
-まず，Libertyの構成ファイル`server.xml`で以下のように構成を行います。通常は最初のリクエストが来るまでWebアプリケーションの起動は遅延されますが，この設定をすることで，起動時に初期化が行われるようになります。
-
-``` xml
-<webContainer deferServletLoad="false" />
-```
-
-あわせて，初期化を行いたいServletの方にも，`@WebServlet`アノテーションに`loadOnStartup`の設定を追加します。`loadOnStartup`を設定されたServletが複数ある場合，数値が小さい順にServletの初期化が行われます。
-
-``` java
-@WebServlet(urlPatterns = "/hello", loadOnStartup = 100)
-```
-
-{% endnote %}
+> [!TIP]
+>最初のリクエストが来る前，サーバー起動時にサーブレットの初期化を行う方法があります。
+>
+>まず，Libertyの構成ファイル`server.xml`で以下のように構成を行います。通常は最初のリクエストが来るまでWebアプリケーションの起動は遅延されますが，この設定をすることで，起動時に初期化が行われるようになります。
+>
+>``` xml
+><webContainer deferServletLoad="false" />
+>```
+>
+>あわせて，初期化を行いたいServletの方にも，`@WebServlet`アノテーションに`loadOnStartup`の設定を追加します。`loadOnStartup`を設定されたServletが複数ある場合，数値が小さい順にServletの初期化が行われます。
+>
+>``` java
+>@WebServlet(urlPatterns = "/hello", loadOnStartup = 100)
+>```
 
 
 ### JSPとは
@@ -1058,21 +1030,18 @@ ServletとJSPは，組み合わせて利用する手段が多く提供されて�
 
 JSPは，内部で動的にServletのJavaソースコードに変換され，Classファイルにコンパイルされ，Servletとして実行されています。
 
-{% note %}
-
-実際にどのようなJavaコードに変換されているかを調べたい場合には，Libertyの構成ファイル`server.xml`で以下のように構成を行います。これにより，動的に生成されたJavaソースコードのファイルが，コンパイル後も削除されずに残ります。
-
-``` xml
-<jspEngine keepGenerated="true" />
-```
-
-生成される場所は，`target/liberty/wlp/usr`の，更に相当奥のディレクトリで，動的に生成されるため環境によって異なります。`find`コマンドやWindowsのエクスプロラーで`*.java`を検索して場所を調べてください。
-
-``` terminal
-$ find . -name '*.java'
-```
-
-{% endnote %}
+> [!TIP]
+>実際にどのようなJavaコードに変換されているかを調べたい場合には，Libertyの構成ファイル`server.xml`で以下のように構成を行います。これにより，動的に生成されたJavaソースコードのファイルが，コンパイル後も削除されずに残ります。
+>
+>``` xml
+><jspEngine keepGenerated="true" />
+>```
+>
+>生成される場所は，`target/liberty/wlp/usr`の，更に相当奥のディレクトリで，動的に生成されるため環境によって異なります。`find`コマンドやWindowsのエクスプロラーで`*.java`を検索して場所を調べてください。
+>
+>``` terminal
+>$ find . -name '*.java'
+>```
 
 
 #### JSPのなかにJavaのコードを埋めこむ
@@ -1190,46 +1159,43 @@ public int getCount() {
 %>
 ```
 
-{% note %}
-
-JSP中には何種類かの方法でコメントを記述することができます。
-
-まず，HTMLのコメントを記述できます。この形式のコメントはブラウザの画面上では見えませんが，クライアントには送信されているので，利用者がソースを見ると内容が見えてしまいます。
-
-``` jsp
-<!-- HTMLコメント -->
-```
-
-また，HTMLコメント中でスクリプトレットなどを記述すると，その内容は実行されてしまします。
-
-``` jsp
-<!-- <% count += 1; %> このJavaコードは実行される -->
-```
-
-次にJSPのコメント。`<%--`と`--%>`のタグで囲んで記述します。この形式のコメントの中身は，クライアントにも送信されません。
-
-``` jsp
-<%-- JSPコメント --%>
-```
-
-また，JSPコメント中でスクリプトレットなどを記述しても，その内容は実行されません。
-
-``` jsp
-<%-- <% count += 1; %> このJavaコードは実行されない --%>
-```
-
-また，スクリプトレット中には，通常のJavaのコメントを記述することができます。
-
-``` jsp
-<%  count += 1; /* Javaのコメント */
-    // Javaの1行コメント
-    if (count >= 10) {
-        count = 0;
-    }
-%>
-```
-
-{% endnote %}
+> [!TIP]
+>JSP中には何種類かの方法でコメントを記述することができます。
+>
+>まず，HTMLのコメントを記述できます。この形式のコメントはブラウザの画面上では見えませんが，クライアントには送信されているので，利用者がソースを見ると内容が見えてしまいます。
+>
+>``` jsp
+><!-- HTMLコメント -->
+>```
+>
+>また，HTMLコメント中でスクリプトレットなどを記述すると，その内容は実行されてしまします。
+>
+>``` jsp
+><!-- <% count += 1; %> このJavaコードは実行される -->
+>```
+>
+>次にJSPのコメント。`<%--`と`--%>`のタグで囲んで記述します。この形式のコメントの中身は，クライアントにも送信されません。
+>
+>``` jsp
+><%-- JSPコメント --%>
+>```
+>
+>また，JSPコメント中でスクリプトレットなどを記述しても，その内容は実行されません。
+>
+>``` jsp
+><%-- <% count += 1; %> このJavaコードは実行されない --%>
+>```
+>
+>また，スクリプトレット中には，通常のJavaのコメントを記述することができます。
+>
+>``` jsp
+><%  count += 1; /* Javaのコメント */
+>    // Javaの1行コメント
+>    if (count >= 10) {
+>        count = 0;
+>    }
+>%>
+>```
 
 #### JSPとServletの連携
 
