@@ -4,31 +4,28 @@
 
 ### server.xmlの基本
 
-Libertyの構成を行う際の中心となるファイルで，XML形式で記述します。server.xmlは`${server.config.dir}`ディレクトリにあるファイルが使用されます。
+Libertyの構成を行う際の中心となるファイルで，XML形式で記述します。`server.xml`は`${server.config.dir}`ディレクトリにあるファイルが使用されます。
 
 #### デフォルトベースの構成
 
-server.xmlに記述する構成要素には，基本的に全てデフォルトの値が決まっています。ファイルにはデフォルトから変更するものだけを記述します。これにより非構成ファイルを常に簡潔に記述することができます。
+`server.xml`に記述する構成要素には，基本的に全てデフォルトの値が決まっています。ファイルにはデフォルトから変更するものだけを記述します。これにより非構成ファイルを常に簡潔に記述することができます。
 
 このデフォルト値はバージョンが上がっても変更されないようになっていますので，記述をしなくても安全です。構成する内容を最小限に保つためにも，また環境に合わせてどのように構成を変えたかを明確に管理するためにも，利用するデフォルト値をあえて構成に記述する，というのは避けましょう。
 
 デフォルトの値は，Web上のWebSphere Liberty，Open Libertyのオンラインマニュアルでも確認できますが，Liberty Developer Toolsなどの開発ツールでも参照することが可能です。
 
-{% note %}
-
-**Note:** server.xmlの構成項目やその説明，デフォルトの値が記載されたXSDファイル(XML Schema)を動的に生成することができます。Libertyの構成ファイルを操作するツールを自作する際などに，利用します。生成にはLibertyの`schemaGen`コマンドを利用します。
-
-```
-schemaGen /path/to/schema.xsd
-```
-
-以下のようにオプションでロケールを指定すると，日本語で説明が記述されたXSDファイルが生成されます。
-
-```
-schemaGen  --locale=ja_JP /path/to/schema.xsd
-```
-
-{% endnote %}
+> [!TIPS]
+>`server.xml`の構成項目やその説明，デフォルトの値が記載されたXSDファイル(XML Schema)を動的に生成することができます。Libertyの構成ファイルを操作するツールを自作する際などに，利用します。生成にはLibertyの`schemaGen`コマンドを利用します。
+>
+>```
+>schemaGen /path/to/schema.xsd
+>```
+>
+>以下のようにオプションでロケールを指定すると，日本語で説明が記述されたXSDファイルが生成されます。
+>
+>```
+>schemaGen  --locale=ja_JP /path/to/schema.xsd
+>```
 
 
 #### 変数の使用
@@ -128,33 +125,32 @@ securityUtility encode パスワード文字列
 ```
 
 {% note %}
-
-難読化のアルゴリズムにAESを指定することもできます。
-
-```
-securityUtility encode --encoding=aes パスワード文字列
-```
-
-AESの変換の際の鍵をデフォルトから変更する場合は，以下のように鍵になる文字列を指定して難読化します。
-
-```
-securityUtility encode --encoding=aes --key=鍵文字列 パスワード文字列
-```
-
-鍵をデフォルトから変更した場合は，Libertyがパスワードを解読できるように変数`wlp.password.encryption.key`で鍵を指定します。
-
-``` xml
-<variable name="wlp.password.encryption.key" value="鍵文字列" />
-```
-
-このファイルはアクセスを制限できる場所に配置し，後述する`<include>`で構成ファイルに取り込むようにします。
-
-また，Libertyの起動時に引数でわたすこともできます。
-
-```
-server start サーバー名 -- --wlp.password.encryption.key=鍵文字列
-```
-{% endnote %}
+> [!TIPS]
+>難読化のアルゴリズムにAESを指定することもできます。
+>
+>```
+>securityUtility encode --encoding=aes パスワード文字列
+>```
+>
+>AESの変換の際の鍵をデフォルトから変更する場合は，以下のように鍵になる文字列を指定して難読化します。
+>
+>```
+>securityUtility encode --encoding=aes --key=鍵文字列 パスワード文字列
+>```
+>
+>鍵をデフォルトから変更した場合は，Libertyがパスワードを解読できるように変数`wlp.password.encryption.key`で鍵を指定します。
+>
+>``` xml
+><variable name="wlp.password.encryption.key" value="鍵文字列" />
+>```
+>
+>このファイルはアクセスを制限できる場所に配置し，後述する`<include>`で構成ファイルに取り込むようにします。
+>
+>また，Libertyの起動時に引数でわたすこともできます。
+>
+>```
+>server start サーバー名 -- --wlp.password.encryption.key=鍵文字列
+>```
 
 
 #### 他のファイルの読み込み
@@ -438,18 +434,15 @@ WARファイルは`server.xml`に`<webApplication>`要素で定義します。`l
 <webApplication location="SupportTools.war" contextRoot="/support" />
 ```
 
-{% note %}
-
-`contextRoot`属性が指定されたなった場合やdropinsにファイルが置かれたとき，コンテキストルートのデフォルト値は，以下の項目のうち上のものほど優先して利用されます。
-
-- EARファイルの`application.xml`で指定された値
-- WARファイルがibm-web-ext.xmlを含んでいた場合，その`web-ext`要素の`context-root`属性の値
-- `<webApplication>`要素の`name`属性の値
-- WARファイルのファイル名から`.war`を取り除いたもの
-
-ですが，できるだけ`contextRoot`属性で明示的に指定するようにしましょう。
-
-{% endnote %}
+> [!NOTE]
+>`contextRoot`属性が指定されたなった場合やdropinsにファイルが置かれたとき，コンテキストルートのデフォルト値は，以下の項目のうち上のものほど優先して利用されます。
+>
+>- EARファイルの`application.xml`で指定された値
+>- WARファイルがibm-web-ext.xmlを含んでいた場合，その`web-ext`要素の`context-root`属性の値
+>- `<webApplication>`要素の`name`属性の値
+>- WARファイルのファイル名から`.war`を取り除いたもの
+>
+>ですが，できるだけ`contextRoot`属性で明示的に指定するようにしましょう。
 
 `<enterpriseApplication>`や`<webApplication>`には，ネストした子要素として（あるいはIDで参照して）以下のようなものが構成できます。
 
@@ -470,15 +463,12 @@ LibertyがHTTPリクエストを処理するためにLISTENするエンドポイ
 
 `host`属性が，LibertyがポートをLISTENするさいにバインドするアドレスですが，デフォルトは`localhost`になっています。つまりリモートからの接続はできません。`server create`コマンドで作成したテンプレートの`server.xml`では，基本的に`host`属性は構成されておらず，同じPC内のローカルからしか接続できないようになっています。リモートからも接続できるようにするには`host="*"`を設定します。この部分は実働環境でLibertyを使用する場合に，必ず書き換えないといけない部分なので注意してください。
 
-{% note %}
-
-`<httpEndpoint>`の`host`属性のデフォルトが`localhost`になっているのは二つの理由があります。
-
-一つめはセキュリティの観点からです。Libertyでは，セキュリティに関わる設定は安全な方をデフォルトにする，という原則があります。開発時には，安全なセキュリティ構成を取れているとは限りません。不用意に立ち上げたサーバーが外部から攻撃されて，被害を被ることを防いでいます。
-
-二つめはライセンスの観点からです。Open Libertyはオープンソース化される前はWebSphere Libertyという商用ランタイムとして開発されていました。WebSphere Libertyは開発者用途，つまり開発者が専有利用するPC上で，リモートから接続せずローカルでテスト実行する用途であれば無償で利用できます。`host="*"`が設定されていない状態であれば，ライセンスに違反することなく安全にWebSphere Libertyを使用することができます。
-
-{% endnote %}
+> [!NOTE]
+>`<httpEndpoint>`の`host`属性のデフォルトが`localhost`になっているのは二つの理由があります。
+>
+>一つめはセキュリティの観点からです。Libertyでは，セキュリティに関わる設定は安全な方をデフォルトにする，という原則があります。開発時には，安全なセキュリティ構成を取れているとは限りません。不用意に立ち上げたサーバーが外部から攻撃されて，被害を被ることを防いでいます。
+>
+>二つめはライセンスの観点からです。Open Libertyはオープンソース化される前はWebSphere Libertyという商用ランタイムとして開発されていました。WebSphere Libertyは開発者用途，つまり開発者が専有利用するPC上で，リモートから接続せずローカルでテスト実行する用途であれば無償で利用できます。`host="*"`が設定されていない状態であれば，ライセンスに違反することなく安全にWebSphere Libertyを使用することができます。
 
 ネストした子要素として（あるいはIDで参照して）以下のようなものが構成できます。
 
@@ -596,7 +586,7 @@ Libertyは，XML形式以外の構成ファイルもいくつか使用します�
 
 LibertyのJavaプロセスで使用される環境変数を定義します。
 
-各行に「環境変数名=値」を記述します。イコールの両側に空白を置いてはいけません。`#`で始まる行はコメントとして無視されます。
+各行に`環境変数名=値`を記述します。イコールの両側に空白を置いてはいけません。`#`で始まる行はコメントとして無視されます。
 
 ``` properties
 # change log output dir

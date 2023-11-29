@@ -30,17 +30,14 @@ Libertyのアプリケーション開発は，基本的にLibertyのプラグイ
 
 左のアクティビティ・バーで「エクスプローラー」をナビゲートしてプロジェクト内のファイルを確認します。
 
-{% note %}
-
-`pom.xml`を開いたときに，追加で「Dependency Analytics」拡張を導入するかたずねる通知がでることがあります。
-
-システムにMavenが導入済みであれば，プロジェクトを扱う上で有益な拡張なので「Install」をおして導入しておきましょう。時間がたって通知が消えてしまったら，右下の🔔のボタンをクリックすると再度参照できます。
-
-![Dependency Analytics導入の確認](../images/firststep3.png)
-
-Mavenが導入されていなければDependency Analyticsは正常に動作しませんので入れなくてもかまいません。
-
-{% endnote %}
+> [!TIPS]
+>`pom.xml`を開いたときに，追加で「Dependency Analytics」拡張を導入するかたずねる通知がでることがあります。
+>
+>システムにMavenが導入済みであれば，プロジェクトを扱う上で有益な拡張なので「Install」をおして導入しておきましょう。時間がたって通知が消えてしまったら，右下の🔔のボタンをクリックすると再度参照できます。
+>
+>![Dependency Analytics導入の確認](../images/firststep3.png)
+>
+>Mavenが導入されていなければDependency Analyticsは正常に動作しませんので入れなくてもかまいません。
 
 「エクスプローラー」のカラムを開くと，以下のようなフォルダー構成がみえます。
 
@@ -141,100 +138,96 @@ Libertyのサーバーが構成されて起動すると，初回はファイア�
 
 
 {% note %}
-
-**ターミナルが文字化けしたら**
-
-Windows環境でJDK 18以降を使用している場合は，ターミナルの出力が文字化けしていて読めないことがあります。
-
-![文字化けしたターミナル](../images/encoding_mismatch1.png)
-
-これはJDK 18以降で，さまざまな箇所の文字エンコーディングのデフォルトがUTF-8に変更されたためです。ターミナルで実行されているPowerShellなどは，通常はUTF-8ではなくMS932（Shift-JIS）で実行されているため文字化けします。ターミナルをUTF-8に変更する必要があります。
-
-まず，実行中のLibertyを止めます。
-
-「LIBERTY DASHBOARD」の「guide-app」で右クリックして「Stop」を選びます。
-
-![LIBERTY DASHBOARDでStopを選択](../images/encoding_mismatch2.png)
-
-メニューの「ファイル」「ユーザー設定」「設定」を開きます。
-
-![設定を開く](../images/encoding_mismatch3.png)
-
-設定画面の右上の「設定(JSON)を開く」ボタンをおします。
-
-![設定(JSON)を開く](../images/encoding_mismatch4.png)
-
-開いた`settings.json`を編集していきます。
-
-![設定(JSON)を開く](../images/encoding_mismatch5.png)
-
-既存の内容が空であったら，以下のように記入します。
-
-``` json
-{
-    // PowerShellを規定で使用
-    "terminal.integrated.defaultProfile.windows": "PowerShell",
-    // PowerShellをUTF-8（Code Page 65001）で起動
-    "terminal.integrated.profiles.windows": {
-        "PowerShell": {
-            "source": "PowerShell",
-            "args": [
-                "-NoExit",
-                "-Command",
-                "chcp 65001"
-            ],
-        }
-    }
-}
-```
-
-すでにいくつかの設定があった場合は，
-
-``` json
-{
-    "redhat.telemetry.enabled": true,
-    "terminal.integrated.defaultProfile.windows": "PowerShell"
-}
-```
-
-末尾に`,`を追加して設定を追加します。上記のように，既に`terminal.integrated.defaultProfile.windows`に`"PowerShell"`が指定されていた場合は，その部分は追加で設定する必要がありません。
-
-``` json
-{
-    "redhat.telemetry.enabled": true,
-    "terminal.integrated.defaultProfile.windows": "PowerShell",
-    // PowerShellをUTF-8（Code Page 65001）で起動
-    "terminal.integrated.profiles.windows": {
-        "PowerShell": {
-            "source": "PowerShell",
-            "args": [
-                "-NoExit",
-                "-Command",
-                "chcp 65001"
-            ],
-        }
-    }
-}
-```
-
-設定を保存したら，VS Codeを終了して再起動してください。
-
-この段階でMavenからのUTF-8の出力は正常に表示されるようになりましたが，まだLibertyからの出力がMS932のままなので，その部分が文字化けします。
-
-Mavenから起動するLibertyの出力をUTF-8にするには，`pom.xml`をひらき，`<properties>`の部分に以下の2行を追加します。
-
-``` xml
-<properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <!-- 以下の2行を追加 -->
-    <liberty.jvm.arg1>-Dstdout.encoding=UTF-8</liberty.jvm.arg1>
-    <liberty.jvm.arg2>-Dstderr.encoding=UTF-8</liberty.jvm.arg2>
-</properties>
-```
-
-{% endnote %}
+> [!CAUTION]
+>Windows環境でJDK 18以降を使用している場合は，ターミナルの出力が文字化けしていて読めないことがあります。
+>
+>![文字化けしたターミナル](../images/encoding_mismatch1.png)
+>
+>これはJDK 18以降で，さまざまな箇所の文字エンコーディングのデフォルトがUTF-8に変更されたためです。ターミナルで実行されているPowerShellなどは，通常はUTF-8ではなくMS932（Shift-JIS）で実行されているため文字化けします。ターミナルをUTF-8に変更する必要があります。
+>
+>まず，実行中のLibertyを止めます。
+>
+>「LIBERTY DASHBOARD」の「guide-app」で右クリックして「Stop」を選びます。
+>
+>![LIBERTY DASHBOARDでStopを選択](../images/encoding_mismatch2.png)
+>
+>メニューの「ファイル」「ユーザー設定」「設定」を開きます。
+>
+>![設定を開く](../images/encoding_mismatch3.png)
+>
+>設定画面の右上の「設定(JSON)を開く」ボタンをおします。
+>
+>![設定(JSON)を開く](../images/encoding_mismatch4.png)
+>
+>開いた`settings.json`を編集していきます。
+>
+>![設定(JSON)を開く](../images/encoding_mismatch5.png)
+>
+>既存の内容が空であったら，以下のように記入します。
+>
+>``` json
+>{
+>    // PowerShellを規定で使用
+>    "terminal.integrated.defaultProfile.windows": "PowerShell",
+>    // PowerShellをUTF-8（Code Page 65001）で起動
+>    "terminal.integrated.profiles.windows": {
+>        "PowerShell": {
+>            "source": "PowerShell",
+>            "args": [
+>                "-NoExit",
+>                "-Command",
+>                "chcp 65001"
+>            ],
+>        }
+>    }
+>}
+>```
+>
+>すでにいくつかの設定があった場合は，
+>
+>``` json
+>{
+>    "redhat.telemetry.enabled": true,
+>    "terminal.integrated.defaultProfile.windows": "PowerShell"
+>}
+>```
+>
+>末尾に`,`を追加して設定を追加します。上記のように，既に`terminal.integrated.defaultProfile.windows`に`"PowerShell"`が指定されていた場合は，その部分は追加で設定する必要がありません。
+>
+>``` json
+>{
+>    "redhat.telemetry.enabled": true,
+>    "terminal.integrated.defaultProfile.windows": "PowerShell",
+>    // PowerShellをUTF-8（Code Page 65001）で起動
+>    "terminal.integrated.profiles.windows": {
+>        "PowerShell": {
+>            "source": "PowerShell",
+>            "args": [
+>                "-NoExit",
+>                "-Command",
+>                "chcp 65001"
+>            ],
+>        }
+>    }
+>}
+>```
+>
+>設定を保存したら，VS Codeを終了して再起動してください。
+>
+>この段階でMavenからのUTF-8の出力は正常に表示されるようになりましたが，まだLibertyからの出力がMS932のままなので，その部分が文字化けします。
+>
+>Mavenから起動するLibertyの出力をUTF-8にするには，`pom.xml`をひらき，`<properties>`の部分に以下の2行を追加します。
+>
+>``` xml
+><properties>
+>    <maven.compiler.source>17</maven.compiler.source>
+>    <maven.compiler.target>17</maven.compiler.target>
+>    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+>    <!-- 以下の2行を追加 -->
+>    <liberty.jvm.arg1>-Dstdout.encoding=UTF-8</liberty.jvm.arg1>
+>    <liberty.jvm.arg2>-Dstderr.encoding=UTF-8</liberty.jvm.arg2>
+></properties>
+>```
 
 ターミナルに以下のようなメッセージが出力されたら，Libertyの起動は成功です。
 
@@ -261,17 +254,14 @@ Mavenから起動するLibertyの出力をUTF-8にするには，`pom.xml`をひ
 
 ![Libertyのトップ画面](../images/firststep8.png)
 
-{% note %}
-
-Libertyでは，アプリケーションサーバーのルートディレクトリ（`/`）をコンテキスト・ルートとしたアプリケーションをデプロイしていない場合，サーバーのトップページにアクセスすると，上記のようなWelcome Pageが表示されます。
-
-このページを無効化するには，サーバーの構成ファイル`server.xml`に以下の設定を追加します。
-
-``` xml
-<httpDispatcher enableWelcomePage="false" />
-```
-
-{% endnote %}
+> [!NOTE]
+>Libertyでは，アプリケーションサーバーのルートディレクトリ（`/`）をコンテキスト・ルートとしたアプリケーションをデプロイしていない場合，サーバーのトップページにアクセスすると，上記のようなWelcome Pageが表示されます。
+>
+>このページを無効化するには，サーバーの構成ファイル`server.xml`に以下の設定を追加します。
+>
+>``` xml
+><httpDispatcher enableWelcomePage="false" />
+>```
 
 Libertyを停止するには，「LIBERTY DASHBOARD」の「guide-app」で右クリックして「Stop」を選びます。
 

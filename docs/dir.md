@@ -126,11 +126,8 @@ server help
 server help アクション
 ```
 
-{% note %}
-
-例外は`schemaGen`コマンドと`serverSchemaGen`コマンドです。これらはアクションを指定せずに直接実行します。また，`jaxws`などのサブディレクトリにあるコマンドも，異なる書式を持ちます。これらはいずれも，引数をつけずにコマンド名だけで実行するとヘルプが表示されます。
-
-{% endnote %}
+> [!NOTE]
+>例外は`schemaGen`コマンドと`serverSchemaGen`コマンドです。これらはアクションを指定せずに直接実行します。また，`jaxws`などのサブディレクトリにあるコマンドも，異なる書式を持ちます。これらはいずれも，引数をつけずにコマンド名だけで実行するとヘルプが表示されます。
 
 #### serverコマンド
 
@@ -292,27 +289,24 @@ featureUtility find キーワード
 featureUtility viewSettings
 ```
 
-{% note %}
-
-製品版のWebSphere Libertyには，リポジトリーとしてIBMのサイトを利用する`installUtility`も同梱されています。`install`アクションで，Feature名やサーバー名を指定してFeatureを導入することができます。
-
-```
-installUtility install Feature名
-```
-
-```
-installUtility install サーバー名
-```
-
-`find`アクションや`viewSettings`も同じように使用できます。
-
-また，`installUtility`固有の機能として，導入済みのFeatureを削除することが可能です。この機能は，Open Libertyではまだ利用できません。
-
-```
-installUtility uninstall Feature名
-```
-
-{% endnote %}
+> [!NOTE]
+>製品版のWebSphere Libertyには，リポジトリーとしてIBMのサイトを利用する`installUtility`も同梱されています。`install`アクションで，Feature名やサーバー名を指定してFeatureを導入することができます。
+>
+>```
+>installUtility install Feature名
+>```
+>
+>```
+>installUtility install サーバー名
+>```
+>
+>`find`アクションや`viewSettings`も同じように使用できます。
+>
+>また，`installUtility`固有の機能として，導入済みのFeatureを削除することが可能です。この機能は，Open Libertyではまだ利用できません。
+>
+>```
+>installUtility uninstall Feature名
+>```
 
 #### securityUtilityコマンド
 
