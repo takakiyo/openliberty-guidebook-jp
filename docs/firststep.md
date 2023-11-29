@@ -164,7 +164,7 @@ Libertyのサーバーが構成されて起動すると，初回はファイア�
 >
 >既存の内容が空であったら，以下のように記入します。
 >
->``` json
+>```json
 >{
 >    // PowerShellを規定で使用
 >    "terminal.integrated.defaultProfile.windows": "PowerShell",
@@ -184,7 +184,7 @@ Libertyのサーバーが構成されて起動すると，初回はファイア�
 >
 >すでにいくつかの設定があった場合は，
 >
->``` json
+>```json
 >{
 >    "redhat.telemetry.enabled": true,
 >    "terminal.integrated.defaultProfile.windows": "PowerShell"
@@ -193,7 +193,7 @@ Libertyのサーバーが構成されて起動すると，初回はファイア�
 >
 >末尾に`,`を追加して設定を追加します。上記のように，既に`terminal.integrated.defaultProfile.windows`に`"PowerShell"`が指定されていた場合は，その部分は追加で設定する必要がありません。
 >
->``` json
+>```json
 >{
 >    "redhat.telemetry.enabled": true,
 >    "terminal.integrated.defaultProfile.windows": "PowerShell",
@@ -217,7 +217,7 @@ Libertyのサーバーが構成されて起動すると，初回はファイア�
 >
 >Mavenから起動するLibertyの出力をUTF-8にするには，`pom.xml`をひらき，`<properties>`の部分に以下の2行を追加します。
 >
->``` xml
+>```xml
 ><properties>
 >    <maven.compiler.source>17</maven.compiler.source>
 >    <maven.compiler.target>17</maven.compiler.target>
