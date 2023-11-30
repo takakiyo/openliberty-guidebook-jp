@@ -370,7 +370,7 @@ mvnw package -Pfor-package
 
 ### Libertyの導入可能パッケージ作成のための構成
 
-パッケージを作成する前に，Libertyの構成ファイル`server.xml`を確認し，リモートからの接続が正常にできるように，`<httpEndpoint>`要素に`host="*"`の属性をついかしておきます。
+パッケージを作成する前に，Libertyの構成ファイル`server.xml`を確認し，リモートからの接続が正常にできるように，`<httpEndpoint>`要素に`host="*"`の属性を追加しておきます。
 
 ``` xml
 <httpEndpoint id="defaultHttpEndpoint" host="*"
