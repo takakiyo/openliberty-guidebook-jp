@@ -292,18 +292,33 @@ Libertyの環境に，依存関係で定義されたJARファイルを追加で�
 
 #### pom.xmlによるjvm.optionsの設定
 
-Libertyを起動するJVMの引数を指定する`jvm.options`は，ファイルを`src/main/liberty/config`に置いておくこともできますが，プロジェクト構成ファイル`pom.xml`の`<properties>`からも生成することができます。`<liberty.jvm.〜>`の名前を持つプロパティが存在すれば，それらに設定された値をマージして，動的に`jvm.options`が作成して利用されます。
+Libertyを起動するJVMの引数を指定する`jvm.options`は，ファイルを`src/main/liberty/config`に置いておくこともできますが，プロジェクト構成ファイル`pom.xml`の`<properties>`からも生成することができます。`<liberty.jvm.〜>`の名前を持つプロパティが存在すれば，それらに設定された値をマージして，動的に`jvm.options`が作成され利用されます。
 
-JVMの設定は，開発者が`liberty:dev`でテストをしている段階と，実働環境で実行される段階では，多くの設定が異なるでしょう。Windows環境でJava 21を利用している場合など，
+> [!CAUTION]
+>`<properties>`から`jvm.options`が作成された場合は，新しいファイルで上書きされ，`src/main/liberty/config/jvm.options`ファイルの内容は利用されません。
+
+JVMの設定は，開発者が`liberty:dev`でテストをしている段階と，実働環境で実行される段階では，多くの設定が異なるでしょう。Windows環境でJava 21を利用している場合など，開発環境に専用の設定が必要になることがあります。
+
+このような場合，Mavenプロジェクトのプロファイルを複数作り，切り替えて使うことで，環境に合わせたJVM構成を利用することができます。
 
 ``` xml
+<!-- 共通する設定 -->
+<properties>
+    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+</properties>
+<!-- プロファイルごとの設定 -->
 <profiles>
     <profile>
-        <id>for-dev</id><!-- 開発環境のためのためのJVM構成 -->
+        <!-- 開発環境のためのプロファイル -->
+        <id>for-dev</id>
         <activation>
+            <!-- このプロファイルをデフォルトにする -->
             <activeByDefault>true</activeByDefault>
         </activation>
         <properties>
+            <!-- 開発環境のためのJVM構成 -->
             <liberty.jvm.maxHeap>-Xmx512m</liberty.jvm.maxHeap>
             <!-- WindowsでJava 21を使用している時の文字化け対策 -->
             <liberty.jvm.stdout>-Dstdout.encoding=UTF-8</liberty.jvm.stdout>
@@ -311,8 +326,10 @@ JVMの設定は，開発者が`liberty:dev`でテストをしている段階と�
         </properties>
     </profile>
     <profile>
-        <id>package</id><!-- デプロイ用のパッケージ作成のためのJVM構成 -->
+        <!-- デプロイ用のパッケージ作成のためのプロファイル -->
+        <id>for-package</id>
         <properties>
+            <!-- デプロイ用のパッケージ作成のためのJVM構成 -->
             <liberty.jvm.maxHeap>-Xmx4096m</liberty.jvm.maxHeap>
             <liberty.jvm.verbosegc>-verbose:gc</liberty.jvm.verbosegc>
             <liberty.jvm.verbosegclog>-Xverbosegclog:logs/verbosegc.%Y%m%d.%H%M%S.log</liberty.jvm.verbosegclog>
@@ -321,15 +338,80 @@ JVMの設定は，開発者が`liberty:dev`でテストをしている段階と�
 </profiles>
 ```
 
-Mavenで利用するローカルのテスト環境の`etc`ディレクトリにファイルを置きたいときには，たとえば`src/main/liberty/etc`ディレクトリを作成し，そこに`server.env`ファイルなどを置き，`<configuration>`の下に以下のように記述します。
+Mavenで，通常通り実行した場合は，`for-dev`のプロファイルが使用されます。
 
-``` xml
-<libertySettingsFolder>src/main/liberty/etc</libertySettingsFolder>
+``` terminal
+mvnw liberty:dev
 ```
 
-`etc`ディレクトリに置かれたファイルは，必要に応じてサーバーの構成に組み込まれますが，サーバーをパッケージしたときには，その中には含まれません。
+`-Pfor-package`を追加して起動したときには，`for-package`のプロファイルが使用されます。
+
+``` terminal
+mvnw package -Pfor-package
+```
+
+> [!TIP]
+>`<properties>`に`<liberty.env.名前>`のプロパティを設定することで環境変数を設定することもできます。
+>
+>設定されるものは`名前=値`になります。例えば以下の用に構成すれば，`APP_CONF_MODE=debug`という環境変数が設定されます。
+>
+>``` xml
+><liberty.env.APP_CONF_MODE>debug</liberty.env.APP_CONF_MODE>
+>```
+>
+>環境変数については，既存の`src/main/liberty/config/server.env`と共存させることができます。以下の`<properties>`を追加してください。
+>
+>``` xml
+><mergeServerEnv>true</mergeServerEnv>
+>```
+>
+>これらも`<profile>`の`<properties>`に設定することで，開発環境でのみ設定する環境変数などを構成できます。
 
 ### Libertyの導入可能パッケージ作成のための構成
 
+次にパッケージを作成するために必要なMavenのプロジェクトの設定です。
+
+Libertyの環境のパッケージを作成するためには，事前にアプリケーションが`compile`されているだけでなく，Libertyプラグインのゴールの`liberty:create`，`liberty:install-feature`，`liberty:deploy`ゴールも実行されている必要があります。これらの実行が行われた後で`liberty:package`のゴールは実行できます。
+
+これらが`package`フェーズで自動的に実行されるように，`<plugin>`の`<executions>`に必要な構成を追加します。
+
+また，デフォルトでは作成されるLibertyのパッケージにはサーバーに存在している全てのFeatureが含まれます。最小限のFeatureのみをパッケージするために，`<include>minify</include>`の設定も追加しておきます。
+
+``` xml
+<plugin>
+    <groupId>io.openliberty.tools</groupId>
+    <artifactId>liberty-maven-plugin</artifactId>
+    <version>3.9</version>
+    <configuration>
+        <!-- 作成するLibertyのパッケージには最小限のFeatureのみ含める -->
+        <include>minify</include>
+    </configuration>
+    <executions>
+        <!-- packageフェーズでLibertyの作成やパッケージも実行 -->
+        <execution>
+            <id>package-server</id>
+            <phase>package</phase>
+            <goals>
+                <goal>create</goal>
+                <goal>install-feature</goal>
+                <goal>deploy</goal>
+                <goal>package</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+Mavenを`package`ゴールを指定して起動すると，導入可能パッケージの作成が行われます。
+
+``` terminal
+mvnw package
+```
+
+パッケージ用の`<profile>`を作成している場合には，`-Pプロファイル名`を追加して起動します。
+
+``` terminal
+mvnw package -Pfor-package
+```
 
 
