@@ -23,7 +23,7 @@ Mavenは標準化されたビルドライフサイクルを提供し，一貫し
 - `target`：ビルドによって生成されたファイルがおかれるディレクトリ。中間ファイルや，最終的な成果物がおかれる。
 - `pom.xml`：Mavenのプロジェクト構成ファイル。ビルドに必要な情報を記述する。
 
-Mavenは，依存関係を自動的に解決する機能をもっています。必要な依存関係を構成しておけば，プロジェクトのビルドに必要なライブラリ（依存関係）を自動的にダウンロードして管理します。Mavenが利用するセントラルリポジトリには，多くのOSSや商用製品のモジュールが，ビルド用に登録されています。
+Mavenは，依存関係を自動的に解決する機能をもっています。必要な依存関係を記述しておけば，プロジェクトのビルドに必要なライブラリ（依存関係）を自動的にダウンロードして管理します。Mavenが利用するセントラルリポジトリには，多くのOSSや商用製品のモジュールが，ビルド用に登録されています。
 
 また，Mavenはプラグインベースのアーキテクチャをとっています。様々な追加のタスクを実行するためのプラグインを利用することができ，拡張性を提供しています。プラグイン自身も，大部分がセントラルリポジトリに登録されており，構成ファイルに記述するだけで使用できるようになっています。
 
@@ -105,12 +105,13 @@ Libertyのプラグインを組み込んだ最小限のMavenのプロジェク�
 ```
 ここでは，Java SE 17とMicroProfile 5.0に準拠したアプリケーションを実行するプロジェクトになっています。
 
-準拠するJava SEのバージョンを`<properties>`で設定します。
+準拠するJava SEのバージョンなどを`<properties>`で設定します。あわえてソースファイルを記述している文字コードをUTF-8に指定しています。
 
 ``` xml
 <properties>
     <maven.compiler.target>17</maven.compiler.target>
     <maven.compiler.source>17</maven.compiler.source>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 </properties>
 ```
 
@@ -174,7 +175,7 @@ Libertyのプラグインを`<build>`の`<plugins>`に`<plugin>`として組み�
 
 |ゴール|説明|
 |------|----|
-|`liberty:install-server`|導入に必要なアーカイブをセントラルリポジトリからダウンロードし，指定された場所に展開する|
+|`liberty:install-server`|導入に必要なアーカイブをセントラルリポジトリからダウンロードし，指定された場所に展開する。|
 |`liberty:create`|サーバーを作成する。事前に暗黙的に`liberty:install-server`を呼び出す。|
 |`liberty:install-feature`|サーバーに追加導入が必要なFeatureがあれば，導入する。|
 |`liberty:deploy`|アプリケーションと構成をサーバーにデプロイする。事前に`compile`および`liberty:create`を実行済みである必要がある。|
@@ -353,7 +354,7 @@ mvnw package -Pfor-package
 > [!TIP]
 >`<properties>`に`<liberty.env.名前>`のプロパティを設定することで環境変数を設定することもできます。
 >
->設定されるものは`名前=値`になります。例えば以下の用に構成すれば，`APP_CONF_MODE=debug`という環境変数が設定されます。
+>設定されるものは`名前=値`になります。例えば以下のように構成すれば，`APP_CONF_MODE=debug`という環境変数が設定されます。
 >
 >``` xml
 ><liberty.env.APP_CONF_MODE>debug</liberty.env.APP_CONF_MODE>
@@ -414,4 +415,28 @@ mvnw package
 mvnw package -Pfor-package
 ```
 
+> [!TIP]
+>`package`ゴールでLibertyの導入パッケージを作成するもう一つの方法が，Libertyのプラグインを`<extensions>`として組み込んで，Mavenの標準ビルドライフサイクルにLibertyプラグインの機能や挙動を追加することです。
+>
+>``` xml
+><plugin>
+>    <groupId>io.openliberty.tools</groupId>
+>    <artifactId>liberty-maven-plugin</artifactId>
+>    <version>3.9</version>
+>    <!-- 拡張として組み込む -->
+>    <extensions>true</extensions>
+>    <configuration>
+>        <!-- 作成するLibertyのパッケージには最小限のFeatureのみ含める -->
+>        <include>minify</include>
+>    </configuration>
+></plugin>
+>```
+>
+>これにより，プロジェクトのターゲットとするパッケージングを，`war`から`liberty-assembly`に変更することができるようになります。
+>
+>``` xml
+><packaging>liberty-assembly</packaging>
+>```
+>
+>また，Mavenの各フェーズに自動的にLibertyのゴールも追加されますので，`mvn package`でLibertyの導入可能パッケージが作成されるようになります。ただし，独立したWARファイルは作成されなくなります。
 
