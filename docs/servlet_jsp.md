@@ -1337,9 +1337,15 @@ public class MessageServlet extends HttpServlet {
 
 ![掲示板にメッセージを追加](../images/servlet_jsp6.png)
 
-ブラウザでメニューから「新しいInPrivateウィンドウ」や「新規シークレットウィンドウ」などを開いて，別のセッションを開始してください。同じURL，[http://localhost:9080/guide-app/message](http://localhost:9080/guide-app/message)にアクセスすると，先ほどのウィンドウで入力したメッセージが見えています。別の名前でメッセージを追加することもできます。
+ブラウザでメニューから「新しいInPrivateウィンドウ」や「新しいシークレットウィンドウ」などを開いて，別のセッションを開始してください。
 
-![別のユーザーで掲示板にアクセス](../images/servlet_jsp7.png)
+![Microsoft EdgeでInPrivateウィンドウを開く](../images/servlet_jsp7.png)
+
+|[Chromeで新しいシークレットウィンドウを開く](../images/servlet_jsp8.png)
+
+同じURL，[http://localhost:9080/guide-app/message](http://localhost:9080/guide-app/message)にアクセスすると，先ほどのウィンドウで入力したメッセージが見えています。別の名前でメッセージを追加することもできます。
+
+![別のユーザーで掲示板にアクセス](../images/servlet_jsp9.png)
 
 
 #### RequestDispatcher：リクエストのディスパッチ
