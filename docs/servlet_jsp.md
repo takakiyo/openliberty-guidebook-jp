@@ -527,10 +527,11 @@ public class SnoopServlet extends HttpServlet {
 }
 ```
 
-呼び出しているメソッドの正確な意味については，Javadocを参照してください。
-
-- HttpServletRequest (Jakarta Servlet API documentation)
-    - [https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletrequest](https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletrequest)
+> [!NOTE]
+>呼び出しているメソッドの正確な意味については，Javadocを参照してください。
+>
+>- HttpServletRequest (Jakarta Servlet API documentation)
+>    - [https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletrequest](https://jakarta.ee/specifications/servlet/6.0/apidocs/jakarta.servlet/jakarta/servlet/http/httpservletrequest)
 
 ##### リクエスト・ヘッダの取得
 
@@ -633,7 +634,7 @@ String username = req.getParameter("username");
 String password = req.getParameter("password");
 ```
 
-パラメーターに非ASCII文字が含まれているときには，パラメーターを取得する前に，エンコーディングを指定する必要があります。
+GETのクエリ文字列やPOSTのボディをパースして，パラメーターを個別の文字列として取り出すことができます。ただ，デフォルトでは文字コードはISO-8859-1としてパースされます。パラメーターに非ASCII文字が含まれているときには，パラメーターを取得する前に，エンコーディングを指定する必要があります。
 
 ``` java
 req.setCharacterEncoding("UTF-8");
@@ -648,9 +649,9 @@ String content = req.getParameter("content");
 
 `HttpServletRequest`の属性は，Webアプリケーション開発において，リクエスト処理の間にデータを保存し，異なるコンポーネント間で共有するために使用されます。サーブレットやJSPなどのWebコンポーネント間で情報を伝達するのに便利な手段です。
 
-後述するように，ServletとJSPの処理を連携させることができます。ビジネスロジックの処理をServletで実行し，結果をJSPで表示する，というような使い方が一般的です。このとき，ServletからJSPに情報を連携する手段として，`HttpServletRequest`の属性が使用されます。
+後述するように，ServletとJSPの処理を連携させることができます。ビジネスロジックの処理をServletで実行し，結果をJSPで表示する，というような使い方が一般的です。このとき，ServletからJSPに情報を連携する手段として，`HttpServletRequest`の属性がよく使用されます。
 
-また，認証フィルターがユーザーの認証情報を属性に設定し，その後の処理でこの情報に基づいてアクセス制御を行うこともできます。
+また，このガイドブックでは割愛していますが，Servletの前処理としてフィルターを割り込ませることが可能です。認証をおこなうフィルターを実装して，そこでユーザーの認証情報を属性に設定し，その後の処理をおこなうServletでこの属性に基づいてアクセス制御を行うなどの使い方もできます。
 
 `HttpServletRequest`のインスタンス`req`に属性を保存するには`setAttribute(String name, Object value)`メソッドを使用します。
 
@@ -703,7 +704,7 @@ session.setAttribute("user", userObject);
 
 ``` java
 // データの取得
-User user = (User) session.getAttribute("user");
+User user = (User)session.getAttribute("user");
 ```
 
 不要になった属性は，削除することができます。
@@ -1056,7 +1057,7 @@ JSPは，内部で動的にServletのJavaソースコードに変換され，Cla
 
 Javaのコードを埋めこんだJSPを作成してみましょう。
 
-プロジェクトの`src/main/webapp`フォルダーに`context.jsp`というファイルを作成し，以下の内容を記述して保存します。
+プロジェクトの`src/main`フォルダーに`webapp`というフォルダーを新規作成します。この`src/main/webapp`に`context.jsp`というファイルを作成し，以下の内容を記述して保存します。
 
 ``` jsp
 <!DOCTYPE html>
@@ -1349,7 +1350,7 @@ public class MessageServlet extends HttpServlet {
 
 ![Microsoft EdgeでInPrivateウィンドウを開く](../images/servlet_jsp7.png)
 
-|[Chromeで新しいシークレットウィンドウを開く](../images/servlet_jsp8.png)
+![Chromeで新しいシークレットウィンドウを開く](../images/servlet_jsp8.png)
 
 同じURL，[http://localhost:9080/guide-servlet/message](http://localhost:9080/guide-servlet/message)にアクセスすると，先ほどのウィンドウで入力したメッセージが見えています。別の名前でメッセージを追加することもできます。
 
