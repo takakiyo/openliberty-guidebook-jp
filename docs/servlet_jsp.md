@@ -1,12 +1,27 @@
 ## Java EEの基本: ServletとJSP
 
+### Servletとは
+
+Servletは，Java EE/Jakarta EE仕様の一部として提供されるAPIで，主にWebアプリケーションのバックエンドとして利用されます。クライアント（通常はWebブラウザ）からのリクエストに応じて動的なコンテンツを生成し，レスポンスとして返す役割を果たします。
+
+ServletはHTTPリクエストとレスポンスを直接扱うことができる機能を提供しています。昨今では，この階層を意識することなく，Webアプリケーションを簡便に作成できる多くのフレームワークが提供されています。ですが，それらのフレームワークの中にも，内部ではServlet APIを使用しているものが多くあります（Spring Boot/Spring MVCなどが代表例です）。
+
+実際の業務アプリケーションの構築にあたっては，フレームワークに隠蔽されて，Servletの機能をつかう機会は少なくなってるかもしれません。それでも，初学者がHTTP通信を利用したWebアプリケーションでは内部でなにがおこなわれているかを学習するにあたっては，現在でも有用な手段でしょう（またフレームワークでトラブルがあった場合も，内部で使用されているServletの知識があると，解決に役立つことが多々あります）。
+
+### Servletを実装してみよう
+
 この章では，ServletとJSPについて実際に開発を行いながら学習します。
 
-アプリケーションは前の章で利用した`guide-app`を使用します。前章およびこの章で追加するアプリケーションを全て含んだコードを，以下のGitHub上で提供しています。必要に応じて手元にCloneを作成して参照してください。
+Liberty Starterで新しく作成したプロジェクト`guide-servlet`でサンプルのコードを作成します。以下の条件でプロジェクトを作成しました。
 
-- https://github.com/takakiyo/openliberty-guidebook-sample
+- **Group** ：`com.demo`のまま
+- **Artifact** ：`guide-servlet`
+- **Build Tool** ：Maven
+- **Java SE Version** ：17
+- **Java EE/Jakarta EE Version** ：10.0
+- **MicroProfile Version** ：None
 
-`guide-app`で利用しているLibertyの構成ファイルでは，Jakarta EE 10のAPIを提供するFeatureが全て有効になっています。Libertyは，利用する機能，Featureだけを有効にすることで実行環境を軽量にたもてるという特長を持っています。より快適に開発を行うために，必要なAPIだけを有効にします。
+`guide-servlet`で利用しているLibertyの構成ファイルでは，Jakarta EE 10のAPIを提供するFeatureが全て有効になっています。Libertyは，利用する機能，Featureだけを有効にすることで実行環境を軽量にたもてるという特長を持っています。より快適に開発を行うために，必要なAPIだけを有効にします。
 
 `src/main/liberty/config`ディレクトリにある`server.xml`を開きます。
 
@@ -33,17 +48,7 @@
 
 これでLibertyの使用するメモリが少なくなり，起動時間もわずかに短くなります。
 
-### Servletとは
-
-Servletは，Java EE/Jakarta EE仕様の一部として提供されるAPIで，主にWebアプリケーションのバックエンドとして利用されます。クライアント（通常はWebブラウザ）からのリクエストに応じて動的なコンテンツを生成し，レスポンスとして返す役割を果たします。
-
-ServletはHTTPリクエストとレスポンスを直接扱うことができる機能を提供しています。昨今では，この階層を意識することなく，Webアプリケーションを簡便に作成できる多くのフレームワークが提供されています。ですが，それらのフレームワークの中にも，内部ではServlet APIを使用しているものが多くあります（Spring Boot/Spring MVCなどが代表例です）。
-
-実際の業務アプリケーションの構築にあたっては，フレームワークに隠蔽されて，Servletの機能をつかう機会は少なくなってるかもしれません。それでも，初学者がHTTP通信を利用したWebアプリケーションでは内部でなにがおこなわれているかを学習するにあたっては，現在でも有用な手段でしょう（またフレームワークでトラブルがあった場合も，内部で使用されているServletの知識があると，解決に役立つことが多々あります）。
-
-### Servletを実装してみよう
-
-`guide-app`にServletを実装します。
+`guide-servlet`にServletを実装します。
 
 `src/main/java/com/demo`フォルダーに`HelloServlet.java`というファイルを作成します。VS Codeのエクスプローラーで`java/com/demo/rest`の`demo`の部分を右クリックし「新しいファイル...」をクリックしてファイル名を入力します。
 
@@ -94,7 +99,7 @@ public class HelloServlet extends HttpServlet {
 
 ![HelloServlet.javaを作成](../images/servlet_jsp1.png)
 
-「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-app/hello](http://localhost:9080/guide-app/hello)にアクセスしてみましょう。
+「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-servlet/hello](http://localhost:9080/guide-servlet/hello)にアクセスしてみましょう。
 
 ほとんどの環境で以下のように表示されたかと思います。
 
@@ -103,14 +108,14 @@ public class HelloServlet extends HttpServlet {
 コマンドプロンプトから`curl`コマンドを実行して，ヘッダをつけてLiberty上のServletにアクセスしてみます。
 
 ``` terminal
-$ curl -H "Accept-Language: fr"  http://localhost:9080/guide-app/hello
+$ curl -H "Accept-Language: fr"  http://localhost:9080/guide-servlet/hello
 <!DOCTYPE html>
 <html>
 <head><title>Hello Servlet</title></head>
 <body>Bonjour, Open Liberty!</body>
 </html>
 
-$ curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-app/hello
+$ curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-servlet/hello
 <!DOCTYPE html>
 <html>
 <head><title>Hello Servlet</title></head>
@@ -124,7 +129,7 @@ $ curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-app/hello
 >`curl`コマンドでHTTPSで接続しようとすると，Libertyが自己署名証明書を使用しているため，証明書の検証に失敗して接続できません。
 >
 >``` terminal
->$ curl https://localhost:9443/guide-app/hello
+>$ curl https://localhost:9443/guide-servlet/hello
 >curl: (60) SSL certificate problem: self signed certificate
 >More details here: https://curl.se/docs/sslcerts.html
 >
@@ -136,7 +141,7 @@ $ curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-app/hello
 >検証失敗を無視して接続するためには`--insecure`オプションを指定します。
 >
 >``` terminal
->$ curl --insecure https://localhost:9443/guide-app/hello
+>$ curl --insecure https://localhost:9443/guide-servlet/hello
 ><!DOCTYPE html>
 ><html>
 ><head><title>Hello Servlet</title></head>
@@ -160,10 +165,10 @@ $ curl -H "Accept-Language: zh-TW"  http://localhost:9080/guide-app/hello
 また，`curl`コマンドに`-v`オプションをつけて実行しても，詳細な通信内容を表示することができます。
 
 ``` terminal
-$ curl -v -H "Accept-Language: en-US" http://localhost:9080/guide-app/hello
+$ curl -v -H "Accept-Language: en-US" http://localhost:9080/guide-servlet/hello
 *   Trying 127.0.0.1:9080...
 * Connected to localhost (127.0.0.1) port 9080 (#0)
-> GET /guide-app/hello HTTP/1.1
+> GET /guide-servlet/hello HTTP/1.1
 > Host: localhost:9080
 > User-Agent: curl/8.1.2
 > Accept: */*
@@ -192,7 +197,7 @@ $ curl -v -H "Accept-Language: en-US" http://localhost:9080/guide-app/hello
 先ほどのServletが実行された際に，クライアントであるブラウザからサーバーへは，以下のようなリクエストが送信されています。
 
 ```
-GET /guide-app/hello HTTP/1.1
+GET /guide-servlet/hello HTTP/1.1
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
 Accept-Encoding: gzip, deflate, br
 Accept-Language: ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7
@@ -216,7 +221,7 @@ HTTPのリクエスト・メッセージは以下のような構造になって�
 
 - **リクエストライン**
     - メッセージの1行目です。スタートラインとも呼ばれます。
-    - リクエストのメソッド（`GET`や`POST`など），ターゲット（上記の例では`/guide-app/hello`）と，HTTPバージョンから構成されています。
+    - リクエストのメソッド（`GET`や`POST`など），ターゲット（上記の例では`/guide-servlet/hello`）と，HTTPバージョンから構成されています。
 - **ヘッダー**
     - `ヘッダー名: 内容`の形式で，情報が行ごとに並んでいます。
     - リクエストのコンテキストやサーバーへの追加指示を提供します。
@@ -262,13 +267,13 @@ Servlet APIは，このリクエストのメッセージを受信し解析し，
 
 ServletやJSPなどのWebアプリケーションはWARファイルにパッケージされて，サーバーで実行されます。Webアプリケーションをサーバーに登録する際には，アプリケーションを呼び出すコンテキスト・ルート（Context Root）を指定します。
 
-今回使用している`guide-app`は，サーバーの構成ファイル`server.xml`で以下のように登録されています。
+今回使用している`guide-servlet`は，サーバーの構成ファイル`server.xml`で以下のように登録されています。
 
 ``` xml
-<webApplication contextRoot="/guide-app" location="guide-app.war" />
+<webApplication contextRoot="/guide-servlet" location="guide-servlet.war" />
 ```
 
-コンテキストルートはURLの構造において，ドメイン名に続く最初のパスセグメントとして利用されます。Servletを呼び出したときのURL，`http://localhost:9080/guide-app/hello`のパスセグメントは`/guide-app/hello`です。このうち`/guide-app`がWebアプリケーションを指定するコンテキスト・ルートとして使用されます。アプリケーション内のパスは`/hello`になります。
+コンテキストルートはURLの構造において，ドメイン名に続く最初のパスセグメントとして利用されます。Servletを呼び出したときのURL，`http://localhost:9080/guide-servlet/hello`のパスセグメントは`/guide-servlet/hello`です。このうち`/guide-servlet`がWebアプリケーションを指定するコンテキスト・ルートとして使用されます。アプリケーション内のパスは`/hello`になります。
 
 Webアプリケーション内のパスのマッピングは，Javaコード内の`@WebServlet`アノテーションで指定されています。これにより，`/hello`のパスでこのServletが呼び出されるようにマップされます。このように，特定のパスを明記したマッピングを完全一致といいます。
 
@@ -439,13 +444,13 @@ public class SnoopServlet extends HttpServlet {
 
 コマンドラインから，以下のようなURLで呼び出して，Path Infoなどがどのように変化するか確認してください。
 
-- `curl http://localhost:9080/guide-app/snoop`
-- `curl http://localhost:9080/guide-app/snoop/`
-- `curl http://localhost:9080/guide-app/snoop/test`
+- `curl http://localhost:9080/guide-servlet/snoop`
+- `curl http://localhost:9080/guide-servlet/snoop/`
+- `curl http://localhost:9080/guide-servlet/snoop/test`
 
 また，以下のような呼び出しでQuery Stringがかわります。
 
-- `curl "http://localhost:9080/guide-app/snoop?foo=bar&hoge=fuga"`
+- `curl "http://localhost:9080/guide-servlet/snoop?foo=bar&hoge=fuga"`
 
 このSnoopServletについて，さらに追加の情報を取得するように拡張したものがこちらになります。
 
@@ -1071,7 +1076,7 @@ Javaのコードを埋めこんだJSPを作成してみましょう。
 </html>
 ```
 
-「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-app/context.jsp](http://localhost:9080/guide-app/context.jsp)にアクセスしてみましょう。`ServletContext`設定された属性（attribute）の一覧が表示されます。
+「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-servlet/context.jsp](http://localhost:9080/guide-servlet/context.jsp)にアクセスしてみましょう。`ServletContext`設定された属性（attribute）の一覧が表示されます。
 
 ##### ディレクティブ（Directive）
 
@@ -1329,7 +1334,7 @@ public class MessageServlet extends HttpServlet {
 
 `WEB-INF`というフォルダーにおいたJSPファイルは，クライアントからのリクエストで直接呼び出すことができません。後述するRequestDispatcherによるディスパッチでのみ利用できるようになります。Servletでの事前処理が必須のJSPファイルは，`WEB-INF`の下に置くというテクニックがよく使用されます。
 
-「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-app/message](http://localhost:9080/guide-app/message)にアクセスしてみましょう。以下のような画面が表示されたら成功です。
+「LIBERTY DASHBOARD」から「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-servlet/message](http://localhost:9080/guide-servlet/message)にアクセスしてみましょう。以下のような画面が表示されたら成功です。
 
 ![掲示板アプリケーションの初期画面](../images/servlet_jsp5.png)
 
@@ -1343,7 +1348,7 @@ public class MessageServlet extends HttpServlet {
 
 |[Chromeで新しいシークレットウィンドウを開く](../images/servlet_jsp8.png)
 
-同じURL，[http://localhost:9080/guide-app/message](http://localhost:9080/guide-app/message)にアクセスすると，先ほどのウィンドウで入力したメッセージが見えています。別の名前でメッセージを追加することもできます。
+同じURL，[http://localhost:9080/guide-servlet/message](http://localhost:9080/guide-servlet/message)にアクセスすると，先ほどのウィンドウで入力したメッセージが見えています。別の名前でメッセージを追加することもできます。
 
 ![別のユーザーで掲示板にアクセス](../images/servlet_jsp9.png)
 
