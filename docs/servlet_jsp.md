@@ -4,9 +4,9 @@
 
 Servletは，Java EE/Jakarta EE仕様の一部として提供されるAPIで，主にWebアプリケーションのバックエンドとして利用されます。クライアント（通常はWebブラウザ）からのリクエストに応じて動的なコンテンツを生成し，レスポンスとして返す役割を果たします。
 
-ServletはHTTPリクエストとレスポンスを直接扱うことができる機能を提供しています。昨今では，この階層を意識することなく，Webアプリケーションを簡便に作成できる多くのフレームワークが提供されています。ですが，それらのフレームワークの中にも，内部ではServlet APIを使用しているものが多くあります（Spring Boot/Spring MVCなどが代表例です）。
+ServletはHTTPリクエストとレスポンスを直接扱うことができる機能を提供しています。昨今では，この階層を意識することなく，Webアプリケーションを簡便に作成できる多くのフレームワークが提供されています。ですが，それらのフレームワークの中にも，しばしば内部ではServlet APIが使用されています（Spring Boot/Spring MVCなどが代表例です）。
 
-実際の業務アプリケーションの構築にあたっては，フレームワークに隠蔽されて，Servletの機能をつかう機会は少なくなってるかもしれません。それでも，初学者がHTTP通信を利用したWebアプリケーションでは内部でなにがおこなわれているかを学習するにあたっては，現在でも有用な手段でしょう（またフレームワークでトラブルがあった場合も，内部で使用されているServletの知識があると，解決に役立つことが多々あります）。
+実際の業務アプリケーションの構築にあたっては，フレームワークに隠蔽されて，Servletの機能をつかう機会は少なくなってるかもしれません。それでも，初学者が「HTTP通信を利用したWebアプリケーションでは内部でなにがおこなわれているか」を学習するにあたっては，現在でも有用な手段でしょう（またフレームワークでトラブルがあった場合も，内部で使用されているServletの知識があると，解決に役立つことが多々あります）。
 
 ### Servletを実装してみよう
 
@@ -88,11 +88,14 @@ public class HelloServlet extends HttpServlet {
         resp.setContentType("text/html; charset=UTF-8");
         PrintWriter writer = resp.getWriter();
         // レスポンスを出力
-        writer.println("<!DOCTYPE html>");
-        writer.println("<html>");
-        writer.println("<head><title>Hello Servlet</title></head>");
-        writer.println("<body>" + greeting + "Open Liberty!</body>");
-        writer.println("</html>");
+        writer.print(
+            """
+            <!DOCTYPE html>
+            <html>
+            <head><title>Hello Servlet</title></head>
+            <body>%sOpen Liberty!</body>
+            </html>
+            """.formatted(greeting));
     }
 }
 ```
