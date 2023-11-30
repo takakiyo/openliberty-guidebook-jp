@@ -370,7 +370,14 @@ mvnw package -Pfor-package
 
 ### Libertyの導入可能パッケージ作成のための構成
 
-次にパッケージを作成するために必要なMavenのプロジェクトの設定です。
+パッケージを作成する前に，Libertyの構成ファイル`server.xml`を確認し，リモートからの接続が正常にできるように，`<httpEndpoint>`要素に`host="*"`の属性をついかしておきます。
+
+``` xml
+<httpEndpoint id="defaultHttpEndpoint" host="*"
+    httpPort="9080" httpsPort="9443" />
+```
+
+次に，パッケージを作成するために必要なMavenのプロジェクトの設定をおこなっていきます。
 
 Libertyの環境のパッケージを作成するためには，事前にアプリケーションが`compile`されているだけでなく，Libertyプラグインのゴールの`liberty:create`，`liberty:install-feature`，`liberty:deploy`ゴールも実行されている必要があります。これらの実行が行われた後で`liberty:package`のゴールは実行できます。
 
