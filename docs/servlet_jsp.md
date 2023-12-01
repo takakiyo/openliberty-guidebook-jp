@@ -1,4 +1,4 @@
-## Java EEの基本: ServletとJSP
+## Jakarta EEの基本: ServletとJSP
 
 ### Servletとは
 
