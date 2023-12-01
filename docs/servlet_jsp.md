@@ -1026,6 +1026,16 @@ public void init​() throws ServletException {
 >@WebServlet(urlPatterns = "/hello", loadOnStartup = 100)
 >```
 
+#### その他のServletの機能
+
+紙面の都合で説明を割愛したその他の主なServletの機能として，以下のようなものがあります。
+
+- Servletフィルター
+- 各種のイベントリスナー
+- 非同期Servlet
+- 認証機構との連携とアクセス制御
+- モジュラー化とコードによるServlet/フィルター/リスナーの追加
+
 
 ### JSPとは
 
@@ -1422,6 +1432,8 @@ JSP中で`${name}`で値を参照できます。
 <td>${message.timestamp}</td>
 ```
 
+EL式は，これ以外にも多くの記述文法があり，豊富な表現が可能です。EL式の仕様は，JSPとは独立した別の仕様として策定されているほど，多彩な機能があります。
+
 JSP中では，`$`および`#`がEL式として扱われるため，これらの文字を記述する際には，`\$`および`\#`の用にエスケープする必要があります。
 
 
@@ -1466,4 +1478,14 @@ req.setAttribute("messageList", messages);
 </tr>
 </c:forEach>
 ```
+
+#### その他のJSPの機能
+
+紙面の都合で説明を割愛したその他の主なJSPの機能として，以下のようなものがあります。
+
+- `<jsp:useBean>`，`<jsp:forward>`などのJSPタグ
+- page，tagilb以外のJSPディレクティブ：include，attribute，variable
+- カスタムTag Libraryの実装
+- JSTLのCore以外のライブラリ
+- XML文章として記述されたJSP Document
 

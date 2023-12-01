@@ -288,7 +288,8 @@ CDIコンテナで管理され，必要な場所に注入されるオブジェ�
 
 CDI管理Beanになるための必要条件は以下の通りです。
 
-- インターフェスやabstractクラスでない，コンクリートなJavaクラス（もしくは`@Decorator`アノテーションが付与されたabstract/非abstractクラス）
+- インターフェスやabstractクラスでない，コンクリートなJavaクラス
+    - もしくは`@Decorator`アノテーションが付与されたabstract/非abstractクラス
 - パラメーターなしのコンストラクターを持つか，`@Inject`が付与されたコンストラクターを持つ
 - インナー・クラス（内部クラス）ではない
 - EJBとして定義されていない
@@ -301,7 +302,8 @@ Bean Discovery Modeが`all`の場合，そのアーカイブに含まれるク�
 
 Bean Discovery Modeが`annotated`の場合，以下のいずれかのアノテーションが付与されたクラスだけが，注入の対象となるCDI管理Beanとみなされます。他のクラスが注入されることはないため，安全にCDIを使用できます。こちらの利用が推奨されています。
 
-- スコープを指定するアノテーション（`@RequestScoped`，`@ConversationScoped`，`@SessionScoped`および`@ApplicationScoped`）
+- スコープを指定するアノテーション
+    - `@RequestScoped`，`@ConversationScoped`，`@SessionScoped`および`@ApplicationScoped`
 - `@Dependent`
 - `@Interceptor`，`@Decorator`
 - ユーザー定義のステレオタイプ
@@ -309,6 +311,9 @@ Bean Discovery Modeが`annotated`の場合，以下のいずれかのアノテ�
 Bean Discovery Modeが`none`の場合，そのアーカイブファイルに含まれるクラスは，CDI管理Beanとなりません。注入されることもありません。
 
 現在のCDI 4.0仕様では，アーカイブに`beans.xml`が存在していない場合のデフォルトは`annotated`，`beans.xml`が存在していれば，そこで指定されたBean Discovery Modeになります。
+
+>[!NOTE]
+>`beans.xml`が存在しているが`bean-discovery-mode`の指定がないとき，`beans.xml`の中身が空っぽの時などで，Discovery Modeが何になるのか，などが細かく決まっています。これは過去のバージョンとの整合性を維持する必要性からなのですが，これらのルールに頼らず，CDIを使用する時には正しい`beans.xml`で明示的に`bean-discovery-mode'を指定しましょう。
 
 サンプルとして作成したアプリケーションでは，`beans.xml`で`bean-discovery-mode="annotated"`と指定していますので，スコープを指定するアノテーションのついた`RequestScopedBean`，`SessionScopedBean`，`ApplicationScopedBean`の3つのクラスだけがCDI管理Beanとなります。
 
@@ -318,7 +323,7 @@ Bean Discovery Modeが`none`の場合，そのアーカイブファイルに含�
 - `@Disposes`アノテーションがついたディスポーザー・メソッドを持つクラス
 - `@Observes`アノテーションがついたオブサーバー・メソッドを持つクラス
 
->![NOTE]
+>[!NOTE]
 >この他に，ビルトインされた管理Beanとして，Web Containerにおける`HttpServletRequest`，`HttpSession`，`ServletContext`，およびEJB Containerにおける`UserTransaction`，`java.security.Principal`があります。これらも`@Inject`で注入可能です。
 
 ### プロデューサー・メソッドとプロデューサー・フィールド
@@ -352,7 +357,7 @@ public class LoggerFactory {
 
 ``` java
 public class AppResources {
-	@Produces @Resource(lookup="jdbc/CustomerDatasource")
+    @Produces @Resource(lookup="jdbc/CustomerDatasource")
     @Name("customer")
     DataSource customerDatabase;
 ```
@@ -521,7 +526,9 @@ public @interface Configuration {
 
 これにより，`@Configuration(ConfigurationType.STANDARD)`や`@Configuration(ConfigurationType.ADVANCED)`が限定子として使用できるようになります。パラメーターも一致しないと，同じ限定子とみなされません。
 
-組み込みの限定子として，`@Named`があります。これは文字列をパラメーターとしてとる限定子です。パラメーターの文字列が一致しないと，注入が行われません。
+組み込みの限定子として，`@Named`があります。
+
+これは文字列をパラメーターとしてとる限定子です。パラメーターの文字列が一致しないと，注入が行われません。
 
 ``` java
 @Inject
