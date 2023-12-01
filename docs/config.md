@@ -457,7 +457,7 @@ WARファイルは`server.xml`に`<webApplication>`要素で定義します。`l
 LibertyがHTTPリクエストを処理するためにLISTENするエンドポイントの設定を，構成ファイルの`<httpEndpoint>`要素で構成します。
 
 ``` xml
-<httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint">
+<httpEndpoint host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint" />
 ```
 
 `host`属性が，LibertyがポートをLISTENするさいにバインドするアドレスですが，デフォルトは`localhost`になっています。つまりリモートからの接続はできません。`server create`コマンドで作成したテンプレートの`server.xml`では，基本的に`host`属性は構成されておらず，同じPC内のローカルからしか接続できないようになっています。リモートからも接続できるようにするには`host="*"`を設定します。この部分は実働環境でLibertyを使用する場合に，必ず書き換えないといけない部分なので注意してください。
@@ -480,6 +480,47 @@ LibertyがHTTPリクエストを処理するためにLISTENするエンドポイ
     - ログのフォーマットやサイズによりローテーションなどを構成
 - `<compression>`：レスポンスを自動的に圧縮するための構成
 - `<headers>`：特定のHTTPヘッダーを追加・削除する
+
+##### アクセスログの取得
+
+子要素として`<accessLogging>`を使用すると，Libertyでアクセスログを取得することができます。
+
+``` xml
+<httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443">
+    <accessLogging filepath="${server.output.dir}/logs/http_defaultEndpoint_access.log"
+        logFormat='%h %i %u %t "%r" %s %b %D %{R}W'
+        maxFiles="0" rolloverInterval="1d" rolloverStartTime="00:00" />
+</httpEndpoint>
+```
+
+`logFormat`属性は，Apache HTTP ServerのCustomLogと同じ書式で記録する内容を記述することができます。詳細はOpenLiberty.ioの「HTTP access logging」のページ[^1]を参照してください。
+
+`rolloverInterval`を指定すると，一定時間ごとにアクセスログを別のファイルにロールオーバーすることができます。切り替えの基準となる時刻を`rolloverStartTime`で24時間制の時:分で記入します。`rolloverInterval`で指定した期間が1日未満の端数を持っているときに，どのようなタイミングで切り替わるかについては，ややこしいルールがあるのですが，本当にややこしくて分かりにくいので，`rolloverInterval`に指定する期間は日単位で記入するようにしてください。
+
+`maxFiles`は，ロールオーバーした際に，履歴ファイルをいくつ保持するかを指定します。`0`は，履歴を削除せずに全て残すことを意味します。
+
+[^1]: https://openliberty.io/docs/latest/access-logging.html
+
+
+##### レスポンスの圧縮
+
+子要素として`<compression>`を使用すると，Libertyからのレスポンスを可能ならば圧縮して返すようになります。
+
+``` xml
+<httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443">
+    <compression serverPreferredAlgorithm="gzip|x-gzip|deflate">
+          <types>+application/xml</types>
+          <types>+application/json</types>
+    </compression>
+</httpEndpoint>
+```
+
+CPU負荷に余裕がある環境では，指定するだけでネットワーク転送量を減らし，レスポンスタイムを短くする効果があります。
+
+`serverPreferredAlgorithm`属性は圧縮に使用するアルゴリズムです。通信相手が`Accept-encoding`で指定してきた利用可能なアルゴリズムのなかから，この順で選ばれます。圧縮率の高い`gzip`やその旧エイリアスである`x-gzip`，普及率の高い`deflate`を指定しておけばいいでしょう。
+
+圧縮対象となる`Content-type`を`<types>`で指定します。デフォルトは`text/*`が指定されていますので，HTMLやPlain Text，CSSやJavaScriptが圧縮対象となります。MIME型の前に，圧縮対象に追加するならば`+`を，圧縮対象から外すのであれば`-`をつけて設定します。上記の例では，XMLとJSONを圧縮対象に加えています。
+
 
 #### データベースの構成
 
