@@ -14,10 +14,10 @@ Open Libertyの日本語ガイドブックを提供するプロジェクトで�
 - [開発環境のセットアップ: JDK，Visual Studio Code，Open Liberty](docs/setup.md)
 - [Hello, Open Liberty: 最初のプログラム](docs/firststep.md)
 - [Java EEの基本: ServletとJSP](docs/servlet_jsp.md)
-- [Context and Dependency Injection (CDI)](docs/cdi.md)
+- [RESTful Webサービス: Jakarta RESTful Web Services/JAX-RS](docs/jaxrs.md)
 - データベースとの接続: JDBCとデータソース
-- RESTful Webサービス: JAX-RS
 - データ管理: Java Persistence API (JPA)
+- [Context and Dependency Injection (CDI)](docs/cdi.md)
 
 リファレンス
 
