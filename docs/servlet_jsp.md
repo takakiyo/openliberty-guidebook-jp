@@ -1035,6 +1035,7 @@ public void init​() throws ServletException {
 - 非同期Servlet
 - 認証機構との連携とアクセス制御
 - モジュラー化とコードによるServlet/フィルター/リスナーの追加
+- 互換性維持のためサポートされている`web.xml`による各種構成
 
 
 ### JSPとは
