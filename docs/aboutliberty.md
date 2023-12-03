@@ -1,17 +1,14 @@
 ## Open Libertyとは
 
-Open Liberty（ https://openliberty.io ）とは，IBMによって開発されているオープンソースのエンタープライズJavaランタイムです。軽量で高速に動作し，構成も容易で簡単に利用を開始することができます。
+Open Liberty（[https://openliberty.io](https://openliberty.io)）とは，IBMによって開発されているオープンソースのエンタープライズJavaランタイムです。軽量で高速に動作し，構成も容易で簡単に利用を開始することができます。
 
 MicroProfile仕様に対応しており，高速かつ効率的なクラウドネイティブJavaマイクロサービスを構築することができます。また，Java EE，Jakarta EEにも対応しており，従来型のエンタープライズJavaアプリケーションをモダナイズするプラットフォームとしても利用できます。Spring Bootアプリケーションにも対応しており，高い負荷にも耐える高速なランタイムとして利用可能です。
 
-Open Libertyが対応している主な仕様（2023年10月現在）
-- Java EE 7/8
-- Jakarta EE 9.1/10
-- MicroProfile 1.0/1.2/1.3/1.4
-- MicroProfile 2.0/2.1/2.2
-- MicroProfile 3.0/3.2/3.3
-- MicroProfile 4.0/4.1
-- MicroProfile 5.0/6.0
+2023年11月現在，Open Libertyが対応している主な仕様です。Jakarta EEに対応した最新版でも，Java EEや4.1以前のMicroProfileに対応し続けているのが大きな特徴です。
+- Java EE 7 / 8
+- Jakarta EE 9.1 / 10
+- MicroProfile 1.0 / 1.2 / 1.3 / 1.4 / 2.0 / 2.1 / 2.2 / 3.0 / 3.2 / 3.3 / 4.0 / 4.1
+- MicroProfile 5.0 / 6.0
 
 EPL（Eclipse Public License）で公開されており，だれでも無料で自由に利用することが可能です。本番業務を実行する実働環境にも無償で利用できます。またOpen Libertyを実行環境として組み込んだ製品の販売も自由に行えます。
 
@@ -27,7 +24,7 @@ IBMは，クラウドネイティブ時代に対応するため，アプリケ�
 
 現在は，基本的にOpen Libertyで新機能の開発が行われ，それを取り込む形で製品版のWebSphere Libertyが提供されています。製品版で見つかったバグの修正も，Open Libertyのソースが管理されているGitHub上でissueが作成されて行われます。
 
-オープンソースをベースとしたソフトウェア製品は多数ありますが，Libertyの大きな特徴は，製品版のWebSphere LibertyとOSS版のOpen Libertyのバージョンが完全に同期されていることです。つまり，同じバージョン番号が同じタイミングで公開されます。Open Libertyで追加された新機能は，同じタイミングででた同バージョンのWebSphere Libertyでもすぐに利用できます。
+オープンソースをベースとしたソフトウェア製品は多数ありますが，Libertyの大きな特徴は，製品版のWebSphere LibertyとOSS版のOpen Libertyのバージョンが完全に同期されている，ということです。つまり，同じバージョン番号が同じタイミングで公開されます。Open Libertyで追加された新機能は，同じタイミングででた同バージョンのWebSphere Libertyでもすぐに利用できます。
 
 原則としてOpen Libertyでのみ提供されている機能はないので，Open Libertyで実行していた構成やアプリケーションは，そのまま同じバージョンのWebSphere Libertyで同じように動作します。
 
@@ -114,7 +111,7 @@ import javax.sql.DataSource;
 >
 >https://openliberty.io/docs/latest/java-se.html
 
-また，バージョンアップによって仕様のバージョンは上がらなくても，バグは適宜修正されています。アプリケーションによっては，修正以前の誤った動作に依存してしまっているケースもしばしばあり，バージョンアップにあたって修正が必要となるケースも稀にあります。移行前のテストは必ず行ってください。
+また，バージョンアップによって仕様のバージョンは上がらなくても，バグは適宜修正されています。アプリケーションによっては，以前の誤った動作に依存してしまっているケースもしばしばあり，バージョンアップにあたってアプリの修正が必要となるケースも稀にあります。移行前のテストは必ず行ってください。
 
 ### Libertyの特徴：ビジネスにも使いやすいEPL
 

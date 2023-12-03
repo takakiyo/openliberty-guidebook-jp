@@ -25,7 +25,7 @@ Java EEは長い歴史で膨大なエコシステムを抱えています。
 
 Java EE/Jakarta EEは，HTTP通信でクライアントとやりとりをするサーバーアプリケーション，Webアプリケーションを実装するフレームワークという側面も持っています。
 
-Webアプリケーションを実装するフレームワークとしては，それ以外にも以下のようなものがよく使われています。
+Webアプリケーションを実装するフレームワークとしては，その他にも以下のようなものがよく使われています。
 
 - **Spring Framework（特にSpring Boot）**
     - 現代のJava開発で最も人気があり，エンタープライズレベルの開発に広く使われています。
@@ -53,7 +53,7 @@ Webアプリケーションを実装するフレームワークとしては，�
 
 Java EE/Jakarta EEは，単なるフレームワークではなく，標準仕様の一種です。Java EE/Jakarta EEを学ぶことは，それ自体でアプリケーションを実装する際はもちろん，他のフレームワークを使ってアプリケーションを実装する際にも，その内部の動作を深く知るために役に立ちます。
 
-また，Java EE/Jakarta EEを直接使用する，その理由の一つは長期的な安定性です。Java SEの仕様策定もそうですが，Javaコミュニティはバージョンアップによってアプリケーションが動かなくなる破壊的な変更に非常に抵抗をしめします。Java EEにもこの文化は引き継がれています。Servletで実装されたアプリケーションの中には，20年前に実装されたアプリケーションが昨今の実行環境で稼働していることもあります。
+また，Java EE/Jakarta EEを直接使用する，その理由の一つは長期的な安定性です。Java SEの仕様策定もそうですが，Javaコミュニティはバージョンアップによってアプリケーションが動かなくなる破壊的な変更に強い抵抗をしめします。Java EEにもこの文化は引き継がれています。Servletで実装されたアプリケーションの中には，20年前に実装されたアプリケーションが昨今の実行環境で稼働していることもあります。
 
 この安定性はJava EEからJakarta EEへの移行でいったん途切れてしまいましたが（詳しくは後の章で記述します），今後はJakarta EEも長期にわたって安定した仕様として提供されていくでしょう。10年以上の寿命が想定されるアプリケーションを実装するプラットフォームとしては，いまでもJakarta EEが最も有力な選択肢となると考えられます。
 
@@ -117,7 +117,7 @@ Libertyが対応しているJava EE/Jakarta EEのバージョンと，それぞ�
     - `javax.*`名前空間から`jakarta.*`名前空間への全面的な移行が行われました。
     - JAX-RPCやJAXR，Java EE Management APIなど，非推奨となっていたAPIの削除が行われました。
     - 2021年に9.1に更新され，バグの修正やJava 11との互換性向上がはかられました。
-— Jakarta EE 10
+- Jakarta EE 10
     - 2022年に公開されました。
     - 従来から提供されていたサブセット，Web Profileに加え，Core Profileが追加されました。MicroProfile対応のフレームワークでの利用が想定されています。
     - CDIで，コンパイル時にのみ依存性の注入を行うサブセット，CDI Liteが追加されました。
@@ -183,7 +183,7 @@ JDBC（Java Database Connectivity）は，RDBMSへ接続しSQL実行を行う仕
 
 **Jakarta Mail** （Java Mail）は，メールを送受信します。内部で **Jakarta Activation** （JAF：JavaBeans Activation Framework）という仕様を使用しています。
 
-#### CDI：Contexts and Dependency Injection
+#### Contexts and Dependency Injection
 
 **CDI：Contexts and Dependency Injection** は，実行時に依存性を注入（Dependency Injection）する機能を提供します。また，注入するBeanのライフサイクルを管理し，リクエスト・セッション・アプリケーションなどのスコープ（コンテキスト）に応じたインスタンスの提供を行います。
 
@@ -241,10 +241,12 @@ MicroProfileは，Java EEやその後継のJakarta EEと密接に関係してい
 - Fault Tolerance：サービスが障害に対して回復力を持つように設計された機能を提供します。
 - Rest Client：RESTクライアントAPIを提供し、マイクロサービス間の通信をサポートします。
 - Metrics，Health：アプリケーションのパフォーマンスと健全性を監視するためのAPIを提供します。
+- Telemetry：OpenTelemetry仕様に準拠し，Java以外のアプリを含めた分散トレースやメトリクス収集，ログ管理を実現します。
+- OpenAPI：OpenAPI仕様に準拠し，RESTアプリケーションのAPIの構造を記述するための標準的な方法を提供します。
+- JWT Authentication：JSON Web Tokenによる認証を提供します。
 
 MicroProfile 4.1以前の仕様は`javax.*`名前空間のAPIをサポートしており，Java EE 7/8と互換性があります。
 
 MicroProfile 5.0以降の仕様は`jakarta.*`名前空間のAPIをサポートしており，Jakarta EE 9.1/10と互換性があります。
 
 Java EE/Jakarta EEと同様に，MicroProfileについても，多くのベンダーやOSSから実装が提供されています。Libertyも，もちろんMicroProfileをサポートしており，その機能を活用したアプリケーションを実行することができます。
-
