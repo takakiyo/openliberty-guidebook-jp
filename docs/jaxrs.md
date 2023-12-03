@@ -484,7 +484,81 @@ Servlet APIが有効になっている環境では，以下の型のメソッド
 - `java.io.InputStream`，`java.io.Reader`，`java.io.File`
 - `javax.activation.DataSouce`
 
+>[!NOTE]
+>XMLも同様です。`MediaType.APPLICATION_XML`でレスポンスを送信するとき，`application/xml`のMIMEタイプのリクエストのボディを受信するときも，上記の`String`や`byte[]`等の型を使用したときには，そのままで送受信されます。これらは整形済みのXMLが格納されることが想定されています。その他の型が指定されたときには，JAX-Bが利用できる環境では，それが利用されます。
+
+
+### JSONとは
+
+ここで，RESTfulなWebサービスでよく使用されるJSONというデータ形式について，あらためて説明します。
+
+JSON（JavaScript Object Notation）は，JavaScriptにおけるオブジェクトの表記法をベースとした軽量なデータ記述言語です。単純で明快な構文をもち，あらゆるプログラミング言語で容易に扱うことができます。そのため，汎用のデータ交換フォーマットや構成ファイルとして多用されています。
+
+``` json
+ {
+     "firstName": "John", "lastName": "Smith", "age": 25,
+     "address" : {
+         "streetAddress": "21 2nd Street",
+         "city": "New York",
+         "state": "NY",
+         "postalCode": "10021"
+     },
+     "phoneNumber": [
+         { "type": "home", "number": "212 555-1234" },
+         { "type": "fax", "number": "646 555-4567" }
+     ],
+     "deleted": false
+ }
+```
+
+JSONの構文は，配列とオブジェクトの2つのデータ構造，それらを含んだ7つのvalueタイプだけから構成されています。
+
+配列は`[`と`]`でくくられ，`,`で区切って並べられたvalueの列です。
+
+``` json
+[ 2, 3, 5, 7, 11, 13, 17, 19, 23 ]
+```
+
+オブジェクトは`{`と`}`でくくられ，`,`で区切って並べられた`文字列:value`の列です。
+
+``` json
+{ "firstName": "John", "lastName": "Smith", "age": 25 }
+```
+
+valueタイプは以下の7つが定義されています。
+
+- 配列
+- オブジェクト
+- 文字列（`"`でくくられた文字のあつまり）
+- 数値（10進数のみで，16進数表記などはありません）
+- `true`
+- `false`
+- `null`
+
+自由フォーマットで，valueや`[`，`]`，`{`，`}`，`,`の前後には，自由に改行や空白，タブを入れられます。エンコーディングはUTF-8が指定されています。
+
+あと仕様で決まっているのは数値や文字列の表現くらいで，これで仕様の全部，という非常に単純なデータ形式です。XMLの仕様書が，6章の本編仕様，8章の名前空間仕様，スキーマ関係が各5章で3部，という膨大な内容なのと比較すると，極めてシンプルです。
+
+>[!NOTE]
+>JSONの仕様には，コメントの記法すらありません。これでは構成ファイルなどに用いる際に非常に困るので，各種の拡張や記法が考案されています。JSONを拡張したJSON5では，通常のJavaScriptのように`/*`と`*/`でくくられたコメントや，`//`から改行までのコメントが許されています。VS Codeの`settings.json`でも，`//`から改行までのコメントが使用できます。
+
+JavaにおいてJSONをあつかうAPIは，XMLをあつかうAPIと同じような形式で提供されています。以下にその関係を示します。
+
+|APIの種類|JSON|XML|
+|---|----|---|
+|Processing<br>(Object Model)|Jakarta JSON Processing<br>`jakarta.json`|Java API for XML Processing (JAXP)<br>`javax.xml`|
+|Processing<br>(Streaming Model)|Jakarta JSON Processing<br>`jakarta.json.stream`|Streaming API for XML (StAX)<br>`javax.xml.stream`|
+|Binding|Jakarta JSON Binding<br>`jakarta.json.bind`|Jakarta XML Binding<br>`jakarta.xml.bind`|
+
+
+
 ### JSON ProcessingによるJSONの生成
+
+JSON-Pは，JSONを直接読み書きするためのAPIです。
+
+JSON-Pには，Object ModelのAPIとStreaming ModelのAPIの二種類があります。
+
+Object Modeでは，提供されるオブジェクトを組み立てて，それをJSONとして出力することができます。また逆にJSONを読み込んで，Object Modeのオブジェクトのツリーを得ることができます。
 
 ### JSON BindingによるJSONの生成
 
