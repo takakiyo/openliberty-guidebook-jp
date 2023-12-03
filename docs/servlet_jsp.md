@@ -35,7 +35,7 @@ Liberty Starterで新しく作成したプロジェクト`guide-servlet`でサ�
 </featureManager>
 ```
 
-これを以下のように書き換えて保存します。ServletとJSP，SSL接続するためのTransport Securityだけが有効になります。
+これを以下のように書き換えて保存します。ServletとJSP，HTTPS接続するためのTransport Securityだけが有効になります。
 
 ``` xml
 <!-- Enable features -->
@@ -108,7 +108,7 @@ public class HelloServlet extends HttpServlet {
 
 ![HelloServletの実行結果](../images/servlet_jsp2.png)
 
-コマンドプロンプトから`curl`コマンドを実行して，ヘッダをつけてLiberty上のServletにアクセスしてみます。
+コマンドプロンプトから`curl`コマンドを実行して，ヘッダをつけてLiberty上のServletにアクセスしてみます。Windows環境でも，Windows 10以降で標準で`curl`コマンドが提供されるようになったので，同様の実行が可能です。
 
 ``` terminal
 $ curl -H "Accept-Language: fr"  http://localhost:9080/guide-servlet/hello
@@ -193,11 +193,11 @@ $ curl -v -H "Accept-Language: en-US" http://localhost:9080/guide-servlet/hello
 ```
 
 > [!NOTE]
->ヘッダーの`Vary:`は，クライアントが送信したどのヘッダーの情報をもとにレスポンスを変化させたかを通知します。
+>アプリケーションで追加したヘッダーの`Vary:`は，クライアントが送信したどのヘッダーの情報をもとにレスポンスを変化させたかを通知します。
 >
 >この値は，結果をキャッシュする仕組みで利用されます。ここでは`Accept-Language`ヘッダーが同じ内容のリクエストに対してはレスポンスは同じとみなしてキャッシュを再利用してもよく，このヘッダーが異なるリクエストに対しては再利用してはいけない，ということを示しています。
 
-先ほどのServletが実行された際に，クライアントであるブラウザからサーバーへは，以下のようなリクエストが送信されています。
+先ほどのServletが実行された際に，クライアントであるブラウザからサーバーへは，例えば筆者の環境では以下のようなリクエストが送信されています。
 
 ```
 GET /guide-servlet/hello HTTP/1.1
@@ -224,7 +224,7 @@ HTTPのリクエスト・メッセージは以下のような構造になって�
 
 - **リクエストライン**
     - メッセージの1行目です。スタートラインとも呼ばれます。
-    - リクエストのメソッド（`GET`や`POST`など），ターゲット（上記の例では`/guide-servlet/hello`）と，HTTPバージョンから構成されています。
+    - リクエストのメソッド（`GET`や`POST`など），ターゲット（上記の例では`/guide-servlet/hello`というパス）と，HTTPバージョン（上記の例では`HTTP/1.1`）から構成されています。
 - **ヘッダー**
     - `ヘッダー名: 内容`の形式で，情報が行ごとに並んでいます。
     - リクエストのコンテキストやサーバーへの追加指示を提供します。
@@ -270,13 +270,13 @@ Servlet APIは，このリクエストのメッセージを受信し解析し，
 
 ServletやJSPなどのWebアプリケーションはWARファイルにパッケージされて，サーバーで実行されます。Webアプリケーションをサーバーに登録する際には，アプリケーションを呼び出すコンテキスト・ルート（Context Root）を指定します。
 
-今回使用している`guide-servlet`は，サーバーの構成ファイル`server.xml`で以下のように登録されています。
+今回使用しているアプリケーション`guide-servlet`は，サーバーの構成ファイル`server.xml`で以下のように登録されています。
 
 ``` xml
 <webApplication contextRoot="/guide-servlet" location="guide-servlet.war" />
 ```
 
-コンテキストルートはURLの構造において，ドメイン名に続く最初のパスセグメントとして利用されます。Servletを呼び出したときのURL，`http://localhost:9080/guide-servlet/hello`のパスセグメントは`/guide-servlet/hello`です。このうち`/guide-servlet`がWebアプリケーションを指定するコンテキスト・ルートとして使用されます。アプリケーション内のパスは`/hello`になります。
+コンテキスト・ルートはURLの構造において，ドメイン名に続く最初のパスセグメントとして利用されます。Servletを呼び出したときのURL，`http://localhost:9080/guide-servlet/hello`のパスセグメントは`/guide-servlet/hello`です。このうち`/guide-servlet`がWebアプリケーションを指定するコンテキスト・ルートとして使用されます。アプリケーション内のパスは`/hello`になります。
 
 Webアプリケーション内のパスのマッピングは，Javaコード内の`@WebServlet`アノテーションで指定されています。これにより，`/hello`のパスでこのServletが呼び出されるようにマップされます。このように，特定のパスを明記したマッピングを完全一致といいます。
 
@@ -651,7 +651,7 @@ String content = req.getParameter("content");
 
 後述するように，ServletとJSPの処理を連携させることができます。ビジネスロジックの処理をServletで実行し，結果をJSPで表示する，というような使い方が一般的です。このとき，ServletからJSPに情報を連携する手段として，`HttpServletRequest`の属性がよく使用されます。
 
-また，このガイドブックでは割愛していますが，Servletの前処理としてフィルターを割り込ませることが可能です。認証をおこなうフィルターを実装して，そこでユーザーの認証情報を属性に設定し，その後の処理をおこなうServletでこの属性に基づいてアクセス制御を行うなどの使い方もできます。
+また，このガイドブックでは割愛していますが，Servletの前処理としてフィルターを割り込ませることが可能です。認証をおこなうフィルターを実装して，そこでユーザーの認証情報を`HttpServletRequest`の属性に設定し，その後の処理をおこなうServletでこの属性に基づいてアクセス制御を行う，というような使い方ができます。
 
 `HttpServletRequest`のインスタンス`req`に属性を保存するには`setAttribute(String name, Object value)`メソッドを使用します。
 
