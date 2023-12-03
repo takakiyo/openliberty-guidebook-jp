@@ -16,7 +16,7 @@ Libertyのアプリケーション開発は，基本的にLibertyのプラグイ
 
 「Generate Project」をおして，プロジェクトの雛形ファイルが格納されたZIPファイルをダウンロードします。
 
-ダウンロードしたZIPファイルを適当なフォルダーに展開します。ここでは，自身のホームディレクトリに`src`というフォルダーを作成し，その中の`guide-app`にファイルを展開しています
+ダウンロードしたZIPファイルを適当なフォルダーに展開します。ここでは，自身のホームディレクトリに`src`というフォルダーを作成し，その中の`guide-app`にファイルを展開しています。
 
 ![展開したプロジェクト](../images/firststep1.png)
 
@@ -41,7 +41,7 @@ Libertyのアプリケーション開発は，基本的にLibertyのプラグイ
 
 「エクスプローラー」のカラムを開くと，以下のようなフォルダー構成がみえます。
 
-![Libertyプロジェクトのファイル構成](../images/firststep5.png)
+![Libertyプロジェクトのファイル構成](../images/firststep4.png)
 
 簡単にプロジェクトの内容を説明します。
 
@@ -119,6 +119,11 @@ Maven Wrapperは，最小限のファイルだけをプロジェクトに含み�
     </plugins>
 </build>
 ```
+
+また，プロジェクトにはJavaのソースだけでなく，Libertyの構成ファイル，`server.xml`も含まれていることが分かります。`src/main/libery/config`フォルダーを確認してみてください。
+
+![プロジェクトに含まれるLibertyの構成ファイル](../images/firststep5.png)
+
 
 ### Open Libertyを実行してみる
 
@@ -319,4 +324,59 @@ JSPは基本的にHTMLの書式で内容を記述しますが，Javaのコード
 現在時刻が表示されれば成功です。何回かリロードを繰り返して，表示される時刻が変わることを確認してください。
 
 最後に「LIBERTY DASHBOARD」の「guide-app」で右クリックして「Stop」を選び，Libertyを停止します。
+
+### Libertyのパッケージ
+
+Libertyは，Mavenで開発している環境を，そのまま導入可能なファイルにパッケージングすることができます。
+
+従来は，Java EEアプリケーションを実行するためには，実行する環境ごとにアプリケーションサーバーを事前に導入しておく必要がありました。開発者が作成したアプリケーション，WARやEARファイルは，それだけでは実行できません。テスト環境や本番環境など，実働環境にもWebSphereなどを導入し，追加のJDBC Driverなどを導入し構成を済ませておき，その環境にWARやEARファイルをデプロイして初めて実行することができました。
+
+しかし，Libertyでは，開発者が開発時に動いていた環境を，Libertyの実行環境含めてパッケージし，他の環境に丸ごとコピーすることが可能です。実働環境には，JDKだけ導入しておけば，開発したJava EE/Jakarta EEアプリケーションを実行することができます。
+
+パッケージ作成にあたっては，`pom.xml`にいろいろと構成を行った方がいいのですが，Libertyが正常に稼働し停止した直後であれば，構成なしでもパッケージが作成できます。
+
+実働環境用にLibertyをパッケージする際に，必ず行う必要がある構成変更があります。Libertyの構成ファイル，`src/main/liberty/config`ディレクトリを開き，`<httpEndpoint>`要素に`host="*"`の属性を追加して保存してください。
+
+``` xml
+<!-- To access this server from a remote client add a host attribute to the following element, e.g. host="*" -->
+<httpEndpoint id="defaultHttpEndpoint" host="*"
+                httpPort="9080"
+                httpsPort="9443" />
+```
+
+デフォルトでは，開発者の環境用に，ローカルからの接続しかできないようになっています。上記の設定をしてはじめて，リモートからのリクエストを受け付けるサーバー動作をとるようになります。
+
+「LIBERTY DASHBOARD」からLibertyを停止した直後，ターミナルでコマンドが入力可能になっている状態で，（ターミナルをクリックしてアクティブにしてから）以下のコマンドを入力してください。
+
+Windows環境の場合
+
+``` terminal
+.\mvnw liberty:package
+```
+
+macOSやLinux環境の場合
+
+``` terminal
+./mvnw liberty:package
+```
+
+プロジェクトの`target`フォルダーに，50〜60Mバイトの`guide-app.zip`というファイルが作成されているかと思います（サイズを小さくするための設定をしていないため，それなりにサイズがありますが，実際はこれより小さくすることが可能です）。これが導入可能なLibertyのパッケージになります。
+
+同じPC内の別のフォルダーや，JDKが導入された他の環境（他のOSでもかまいません）にコピーして展開してください。展開した`wlp/bin`フォルダーに移動して，そのフォルダーにある`server`コマンドを使用して，以下のように実行します。
+
+Windows環境の場合
+
+``` terminal
+.\server run
+```
+
+macOSやLinux環境の場合
+
+``` terminal
+./server run
+```
+
+ブラウザで[http://localhost:9080/](http://localhost:9080/)や[http://localhost:9080/guide-app/](http://localhost:9080/guide-app)にアクセスしてみると，Libertyが正常に稼働していることが確認できるかと思います。
+
+`Ctrl`+`C`で，Libertyを停止できます。
 

@@ -440,22 +440,25 @@ Servlet APIが有効になっている環境では，以下の型のメソッド
 |`ok()`|200応答を返すResponseBuilder|
 |`ok(Object entity)`|200応答を返すResponseBuilderで，ボディとなる`entity`を設定|
 |`created(URI location)`|201応答を返すResponseBuilder|
-|`accepted()`|202200応答を返すResponseBuilder|
+|`accepted()`|202応答を返すResponseBuilder|
 |`accepted(Object entity)`|203応答を返すResponseBuilderで，ボディとなる`entity`を設定|
 |`noContent()`|204応答を返すResponseBuilder|
 |`seeOther(URI location)`|303応答を返すResponseBuilderで，locationヘッダに設定するURLを指定|
 |`notModified()`|304応答を返すResponseBuilder|
 |`temporaryRedirect(URI location)`|307応答を返すResponseBuilder|
 |`status(int status)`|任意の応答を返すResponseBuilder|
-|`status(int status, String reasonPhrase)`|応答を返すResponseBuilderで，レスポンスのステータスラインの文字列を指定|
+|`status(int status, String reasonPhrase)`|任意の応答を返すResponseBuilderで，レスポンスのステータスラインの文字列を指定|
 |`status(Response.Status status)`|任意の応答を返すResponseBuilder|
 
 `Response.ResponseBuilder`には，未設定であればボディを`entity(Object entity)`でセットしたり，`header(String name, Object value)`で任意のヘダーを設定したり，`language(String language)`でContent-languageヘッダーを設定したり，`cookie(NewCookie... cookies)`でCookieを設定したりない，レスポンスに対するさまざまな加工が行えます。
 
-最後に`build()`メソッドを実行して，`Response`のオブジェクトを生成します。
+> [!NOTE]
+>どんな操作が可能なのかの詳細は，Javadocを参照してください。
+>
+>- Response.ResponseBuilder (Jakarta RESTful Web Services API documentation)
+>    - [https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/core/response.responsebuilder](https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/core/response.responsebuilder)
 
-[^1]:詳細は`Response.ResponseBuilder`のJavadocを参照してください。
-[https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/core/response.responsebuilder](https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/core/response.responsebuilder)
+最後に`build()`メソッドを実行して，`Response`のオブジェクトを生成します。
 
 ### プロバイダークラス
 
@@ -470,22 +473,24 @@ Servlet APIが有効になっている環境では，以下の型のメソッド
 
 `MessageBodyWriter`は，特定のJavaのクラスを，指定されたメディアタイプで応答に書き込むためのプロバイダーです。`MessageBodyWriter`は，開発者が独自に作成してJAX-RSアプリケーションに組み込むこともできますが，デフォルトの`MessageBodyWriter`もいくつか用意されています。
 
-メディアタイプとして`MediaType.APPLICATION_JSON`が指定されたとき，リソースメソッドから以下の型が返されたときには，何もせずにそのまま（UTF-8のエンコーディングで）クライアントに出力する組み込みの`MessageBodyWriter`が使用されます。これらの型には，整形済みのJSONが格納されていることが期待されています。
+リソースメソッドから以下の型が返されたときには，何もせずにそのまま（UTF-8のエンコーディングで）クライアントに出力する組み込みの`MessageBodyWriter`が使用されます。これらの型には，整形済みのJSONなど，そのまま送信できるデータが格納されていることが期待されています。
 
 - `String`，`byte[]`
 - `java.io.InputStream`，`java.io.Reader`，`java.io.File`
 - `javax.ws.rs.core.StreamingOutput`，`javax.activation.DataSouce`
 
-これ以外のオブジェクトが返された場合，JSON-B/JSON Bindingが利用できる環境では，それを利用した`MessageBodyWriter`が選択されます。そのため，通常は，JSON-BでJavaのオブジェクトがどのようにJSONに変換されるかを理解し，必要に応じてJSON-Bの仕組みで変換をカスタマイズすることが必要となります。
+レスポンスのメディアタイプとして`MediaType.APPLICATION_JSON`が指定されたときで，上記以外のオブジェクトが返された場合，JSON-B/Jakarta JSON Bindingが利用できる環境では，それを利用した`MessageBodyWriter`が選択されます。そのため，通常は，JSON-BでJavaのオブジェクトがどのようにJSONに変換されるかを理解し，必要に応じてJSON-Bの仕組みで変換をカスタマイズすることが必要となります。
 
-また，MessageBodyReaderについても，以下の型については，そのまま（UTF-8のエンコーディングで）クライアントから送信されたボディを受け取ることができます。クライアントが`MediaType.APPLICATION_JSON`でリクエストのボディを送信してきて，リソースメソッドで下記以外のJavaのオブジェクト型を引数にボディを受け取った時には，同様にJSON-Bの`MessageBodyReader`が利用されます。
+また，MessageBodyReaderについても，以下の型については，そのまま（UTF-8のエンコーディングで）クライアントから送信されたボディを受け取ることができます。
 
 - `String`，`byte[]`
 - `java.io.InputStream`，`java.io.Reader`，`java.io.File`
 - `javax.activation.DataSouce`
 
+クライアントが`MediaType.APPLICATION_JSON`でリクエストのボディを送信してきて，リソースメソッドで下記以外のJavaのオブジェクト型を引数にボディを受け取った時には，同様にJSON-Bの`MessageBodyReader`が利用されます。
+
 >[!NOTE]
->XMLも同様です。`MediaType.APPLICATION_XML`でレスポンスを送信するとき，`application/xml`のMIMEタイプのリクエストのボディを受信するときも，上記の`String`や`byte[]`等の型を使用したときには，そのままで送受信されます。これらは整形済みのXMLが格納されることが想定されています。その他の型が指定されたときには，JAX-Bが利用できる環境では，それが利用されます。
+>XMLも同様です。`MediaType.APPLICATION_XML`でレスポンスを送信するとき，`application/xml`のMIMEタイプのリクエストのボディを受信するときに，上記の`String`や`byte[]`等以外の型を使用したときには，JAX-B/Jakarta XML Bindingが利用できる環境では，それが利用されます。
 
 
 ### JSONとは
@@ -511,13 +516,7 @@ JSON（JavaScript Object Notation）は，JavaScriptにおけるオブジェク�
  }
 ```
 
-JSONの構文は，配列とオブジェクトの2つのデータ構造，それらを含んだ7つのvalueタイプだけから構成されています。
-
-配列は`[`と`]`でくくられ，`,`で区切って並べられたvalueの列です。
-
-``` json
-[ 2, 3, 5, 7, 11, 13, 17, 19, 23 ]
-```
+JSONの構文は，オブジェクトと配列の2つのデータ構造，それらを含んだ7つのvalueタイプだけから構成されています。
 
 オブジェクトは`{`と`}`でくくられ，`,`で区切って並べられた`文字列:value`の列です。
 
@@ -525,24 +524,30 @@ JSONの構文は，配列とオブジェクトの2つのデータ構造，それ
 { "firstName": "John", "lastName": "Smith", "age": 25 }
 ```
 
+配列は`[`と`]`でくくられ，`,`で区切って並べられたvalueの列です。
+
+``` json
+[ 2, 3, 5, 7, 11, 13, 17, 19, 23 ]
+```
+
 valueタイプは以下の7つが定義されています。
 
-- 配列
 - オブジェクト
+- 配列
 - 文字列（`"`でくくられた文字のあつまり）
 - 数値（10進数のみで，16進数表記などはありません）
 - `true`
 - `false`
 - `null`
 
-自由フォーマットで，valueや`[`，`]`，`{`，`}`，`,`の前後には，自由に改行や空白，タブを入れられます。エンコーディングはUTF-8が指定されています。
+自由フォーマットで，valueや`{`，`}`，`[`，`]`，`,`の前後には，自由に改行や空白，タブを入れられます。エンコーディングはUTF-8が指定されています。
 
-あと仕様で決まっているのは数値や文字列の表現くらいで，これで仕様の全部，という非常に単純なデータ形式です。XMLの仕様書が，6章の本編仕様，8章の名前空間仕様，スキーマ関係が各5章で3部，という膨大な内容なのと比較すると，極めてシンプルです。
+あと仕様で決まっているのは数値や文字列の表現くらいで，これで仕様の全部，という非常に単純なデータ形式です。XMLの仕様書が，6章の本編仕様，8章の名前空間仕様，スキーマ関係が各5章で3部，という膨大な内容から構成されているのと比較すると，極めてシンプルです。
 
 >[!NOTE]
 >JSONの仕様には，コメントの記法すらありません。これでは構成ファイルなどに用いる際に非常に困るので，各種の拡張や記法が考案されています。JSONを拡張したJSON5では，通常のJavaScriptのように`/*`と`*/`でくくられたコメントや，`//`から改行までのコメントが許されています。VS Codeの`settings.json`でも，`//`から改行までのコメントが使用できます。
 
-JavaにおいてJSONをあつかうAPIは，XMLをあつかうAPIと同じような形式で提供されています。以下にその関係を示します。
+JavaにおいてJSONをあつかうAPIは，XMLをあつかうAPIと同じような形式で提供されています。以下にその関係とAPIが提供されているパッケージ名を示します。
 
 |APIの種類|JSON|XML|
 |---|----|---|
@@ -550,15 +555,141 @@ JavaにおいてJSONをあつかうAPIは，XMLをあつかうAPIと同じよう
 |Processing<br>(Streaming Model)|Jakarta JSON Processing<br>`jakarta.json.stream`|Streaming API for XML (StAX)<br>`javax.xml.stream`|
 |Binding|Jakarta JSON Binding<br>`jakarta.json.bind`|Jakarta XML Binding<br>`jakarta.xml.bind`|
 
+JAXPとStAXは，Java EE/Jakarta EEではなく，Java SE仕様で提供されています。
 
+Processingは，JSONやXMLを直接生成したり，パースしたりするためのAPIです。Object Modelでは，メモリ上にデータ全体のDocument Object Modelを作成してから出力したり，入力全体からDocument Object Modelを作成するためのAPIを提供します。Streaming Modelでは，エレメントごとにイベントベースで入出力を行うAPIを提供します。
+
+BindingはJavaのオブジェクトとJSONやXMLのデータ型を結びつけるためのAPIです。JavaのオブジェクトをJSONとして出力したり，逆にJSONからJavaのオブジェクトを生成したりします。
 
 ### JSON ProcessingによるJSONの生成
 
-JSON-Pは，JSONを直接読み書きするためのAPIです。
+JSON Processing/JSON-Pは，JSONを直接読み書きするためのAPIです。
 
-JSON-Pには，Object ModelのAPIとStreaming ModelのAPIの二種類があります。
+この章では，扱うのが容易なObject Modeを説明します。Object Modeは簡便に利用できますが，JSONをメモリ上にそのまま展開するので，巨大なJSONを扱うのには適していません。パフォーマンスおよびメモリ効率の観点から，扱うJSONが大きくなれば大きくなるほど，Streaming Modelの方が有利になります。逆に言えば，小規模なJSONだけ扱っている範囲では，Object Modeで十分です。
 
-Object Modeでは，提供されるオブジェクトを組み立てて，それをJSONとして出力することができます。また逆にJSONを読み込んで，Object Modeのオブジェクトのツリーを得ることができます。
+JSON Processingでは，JSONデータを以下のようなインターフェースで表現しています。
+
+|インターフェース|説明|
+|-----------|----|
+|`JsonValue`|JSONデータのエレメントを表現する。JsonStructure，JsonString，JsonNumberのスーパータイプ。|
+|`JsonStructure`|JsonValueのサブタイプ。JSONデータのオブジェクトあるいは配列を表す。|
+|`JsonObject`|JsonStructureのサブタイプ。オブジェクトを表す。|
+|`JsonArray`|JsonStructureのサブタイプ。配列を表す。|
+|`JsonString`|JsonValueのサブタイプ。文字列を表す。|
+|`JsonNumber`|JsonValueのサブタイプ。数値を表す。|
+
+クラスの階層は以下のようになっています。
+
+![JsonValueのサブタイプの階層](../images/json-p.png)
+
+以下のような定数も利用できます。
+
+|定数|説明|
+|-----------|----|
+|`JsonValue.TRUE`|`true`を表す。|
+|`JsonValue.FALSE`|`false`を表す。|
+|`JsonValue.NULL`|`null`を表す。|
+|`JsonValue.EMPTY_JSON_OBJECT`|中身のない空のオブジェクトを表す。|
+|`JsonValue.EMPTY_JSON_ARRAY`|中身のない空の配列を表す。|
+
+Object Modeを作成するには，`Json.createObjectBuilder()`や`Json.createArrayBuilder()`，および`Json.createValue​()`を使用します。
+
+たとえば，以下のようなJSONのObject Modeを生成するには，
+
+``` json
+{
+    "firstName": "John", "lastName": "Smith", "age": 25,
+    "address" : {
+        "streetAddress": "21 2nd Street",
+        "city": "New York",
+        "state": "NY",
+        "postalCode": "10021"
+    },
+    "phoneNumber": [
+        { "type": "home", "number": "212 555-1234" },
+        { "type": "fax", "number": "646 555-4567" }
+    ],
+    "deleted": false
+}
+```
+
+以下のようなJavaコードを実行します。
+
+``` java
+JsonObject jsonobj = Json.createObjectBuilder()   
+    .add("firstName", "John")
+    .add("lastName", "Smith")
+    .add("age", 25)
+    .add("address", Json.createObjectBuilder()
+        .add("streetAddress", "21 2nd Street")
+        .add("city", "New York")
+        .add("state", "NY")
+        .add("postalCode", "10021"))
+    .add("phoneNumber", Json.createArrayBuilder()
+        .add(Json.createObjectBuilder()
+            .add("type", "home")
+            .add("number", "212 555-1234"))
+        .add(Json.createObjectBuilder()
+            .add("type", "fax")
+            .add("number", "646 555-4567")))
+    .add("deleted", false)
+    .build();
+```
+
+このように生成されたオブジェクトの各要素を読み出すこともできます。
+
+``` java
+String homeNumber = jsonobj
+    .getJsonArray​("phoneNumber")
+        .getJsonObject​(0)
+            .getString​("number");  // "212 555-1234" が返される
+```
+
+`JsonValue`やそのサブクラスのオブジェクトからJSONデータを得るには，単純に`toString()`メソッドを呼び出すだけです。
+
+`OutputStream`や`Writer`にJSONを書き出す`JsonWriter`も提供されていて，`Json`から取得できます。`JsonWriter`への書き込みは，`close()`前に1度だけ行えます。
+
+``` java
+OutputStream out = new FileOutputStream("jsondata.txt");
+JsonWriter writer = Json.createWriter(out);
+writer.write(jsonobj);
+writer.close();
+```
+
+`InputStream`や`Reader`からJSONを読み出してJsonValueを取得する`JsonReader`も，`Json`から取得できます。
+
+``` java
+InputStream in = new FileInputStream("jsondata.txt");
+JsonReader reader = Json.createReader(in);
+JsonValue json = reader.readValue();
+```
+
+JAX-RSのリソースメソッドでは，`JsonValue`やそのサブクラスの型で値をかえし，クライアントにJSONを送信することができます。また，`JsonValue`の型で（クライアントが`appliction/json`のMIME型で送信していれば）リクエストのボディを受け取ることができます。
+
+>[!TIP]
+>前章で解説したように，`String`を返すメソッドでは，JSONへの自動変換は行われません。単純な文字列をJSONで返すメソッドは，JsonValueを介して変換をしなければなりません。つまり，以下のようなJSONとしては不正な形式を，
+>
+>``` json
+>Hello, "JSON" object!
+>```
+>
+>以下のようにJSONとして正しい形に変換する必要があります。
+>
+>``` json
+>"Hello, \"JSON\" object!"
+>```
+>
+>そのため，以下のようにJsonValueを経由してから返す必要があります。
+>
+>``` java
+>@GET
+>@Path("/hello")
+>@Produces(MediaType.APPLICATION_JSON)
+>public String hello() {
+>    String hello = "Hello, \"JSON\" object!";
+>    return Json.createValue(hello).toString();
+>}
+>```
 
 ### JSON BindingによるJSONの生成
 

@@ -105,7 +105,7 @@ Libertyのプラグインを組み込んだ最小限のMavenのプロジェク�
 ```
 ここでは，Java SE 17とMicroProfile 5.0に準拠したアプリケーションを実行するプロジェクトになっています。
 
-準拠するJava SEのバージョンなどを`<properties>`で設定します。あわえてソースファイルを記述している文字コードをUTF-8に指定しています。
+準拠するJava SEのバージョンなどを`<properties>`で設定します。あわせてソースファイルを記述している文字コードをUTF-8に指定しています。
 
 ``` xml
 <properties>
@@ -410,7 +410,39 @@ Libertyの環境のパッケージを作成するためには，事前にアプ�
 </plugin>
 ```
 
-Mavenを`package`ゴールを指定して起動すると，導入可能パッケージの作成が行われます。
+作成されるパッケージはZIPファイルになります。ファイルを展開すれば，Libertyの環境ができあがり，`server`コマンドでLibertyを開始すれば，Java EE/Jakarta EE/MicroProfileアプリケーションがすぐに実行できます。
+
+パッケージを展開することなく，直接実行できるパッケージを作成するには，`<packageType>`に`jar`を指定し，`<include>`に`minify,runnable`を指定します。
+
+``` xml
+<plugin>
+    <groupId>io.openliberty.tools</groupId>
+    <artifactId>liberty-maven-plugin</artifactId>
+    <version>3.9</version>
+    <configuration>
+        <!-- 実行可能なJARファイルを作成する -->
+        <packageType>jar</packageType>
+        <include>minify,runnable</include>
+    </configuration>
+    <executions>
+        <!-- packageフェーズでLibertyの作成やパッケージも実行 -->
+        <execution>
+            <id>package-server</id>
+            <phase>package</phase>
+            <goals>
+                <goal>create</goal>
+                <goal>install-feature</goal>
+                <goal>deploy</goal>
+                <goal>package</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+作成されたパッケージは，`java -jar パッケージ名.jar`で直接実行することが可能です。
+
+Mavenを，`package`ゴールを指定して起動すると，導入可能パッケージの作成が行われます。
 
 ``` terminal
 mvnw package

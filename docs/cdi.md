@@ -232,8 +232,7 @@ public class SecoundServlet extends HttpServlet {
 }
 ```
 
-
-ブラウザで[http://localhost:9080/guide-cdi/first](http://localhost:9080/guide-cdi/first)にアクセスしてみましょう。
+「LIBERTY DASHBOARD」から「guide-cdi」の右クリックから「Stert」でLibertyを起動し，正常に起動したら，ブラウザで[http://localhost:9080/guide-cdi/first](http://localhost:9080/guide-cdi/first)にアクセスしてみましょう。
 
 「request in FirstServlet」と「request in SecondServlet」に全く同じ内容が表示されていることがわかるかと思います。
 
@@ -397,7 +396,7 @@ CDIでは，`@Inject`のアノテーションが付与されたフィールド�
 - Java Persistence/JPA仕様
     - Entityリスナー
 
-CDI管理Bean自身が注入対象となっていることに注意してください。ServletにBeanを注入し，そのBeanにさらに他のBeanを注入する，という連鎖が可能になっています。
+CDI管理Bean自身が注入対象となっていることに注意してください。ServletにBeanを注入し，そのBeanにさらに別のBeanを注入する，という連鎖が可能になっています。
 
 [^2]:ほとんど使用されないInterceptor仕様，Managed Beans仕様，login callback handlerは省略しています。
 
@@ -426,7 +425,7 @@ CDIは，その方に一致するBean，その型を継承（extends），実装
 
 サンプルとして作成したアプリケーションでは，`BaseBean`を継承した3つのクラス（`RequestScopedBean`，`SessionScopedBean`，`ApplicationScopedBean`）が注入の対象となります。`BaseBean`自身はabstractクラスですので，管理Beanの条件に当てはまらないので注入対象にはなりません。
 
->![NOTE]
+>[!NOTE]
 >管理Beanは，デフォルトで以下のBean Typeを持ちます。
 >
 >- 自身の型
@@ -446,7 +445,7 @@ CDIは，その方に一致するBean，その型を継承（extends），実装
 
 型が一致するBeanの候補が複数ある場合は，限定子が使用されます。
 
-限定子は`@Qualifier`のついた独自アノテーションとして定義します。
+限定子は`@Qualifier`のついた独自アノテーションとして定義します。以下の例では，`@Premium`という限定子を定義しています。
 
 ``` java
 import javax.inject.Qualifier;
@@ -541,3 +540,66 @@ private BaseBean request;
 
 ### 管理Beanのライフサイクル
 
+ライフサイクルを管理し，指定されたスコープにあわせたインスタンスを提供するのがCDIの最大の特長です。
+
+ライフサイクルの範囲（スコープ）をしめすアノテーションとして，CDIでは以下の4種類が提供されています。
+
+- `@RequestScoped`
+    - 1回のHTTPリクエストの範囲 
+- `@ConversationScoped`
+    - 複数回のHTTPリクエストの範囲で，開発者が開始と終了を制御できる
+    - java.io.Serializableの実装（implements）が必須
+- `@SessionScoped`
+    - 1つのHTTPセッションの範囲
+    - java.io.Serializableの実装（implements）が必須
+- `@ApplicationScoped`
+    - 1つのアプリケーションの範囲
+
+また，ライフサイクルを管理しないが注入の対象となるアノテーションとして，`@Dependent`が提供されています。
+
+- `@Dependent`
+    - 注入先ごとに1つのインスタンスが生成される
+    - スコープは，注入先の変数と同じスコープをもつ
+
+`@Dependent`の指定がされたCDI管理Beanは，例えばServletのインスタンス変数に注入された時は，Servletのインスタンスがアプリケーション全体で共有されるため，アプリケーションのスコープとなります。`@RequestScoped`のスコープをもつCDI管理Beanのインスタンス変数に注入された時は，リクエストのスコープとなります。
+
+Proxyによってスコープの動作を実現しているため，ライフサイクルのアノテーションを指定したクラスには，以下の制約が追加されます。
+
+- パラメーターを持たない，private以外のデフォルト・コンストラクターを持つ
+- クラスがfinalでない (サブクラスが作成できる)
+- public，protectedまたはdefault-accessの非staticなメソッドがfinalでない（メソッドがオーバーライドできる）
+- publicなフィールドが存在しない（フィールド値の変更はメソッド経由でのみ実行できる）
+
+ライフサイクルのアノテーションを指定したクラスには，CDIコンテナによるインスタンス作成，および破棄のタイミングで呼び出されるメソッドを定義することができます。
+
+``` java
+@RequestScoped
+public class RequestHandler {
+    @PostConstruct
+    void init() {
+        // 初期化処理
+    }
+
+    @PreDestroy
+    void clear() {
+        // 破棄に備えた処理
+    }
+}
+```
+
+`@PostConstruct`が付加された，引数のない，戻り値がvoidのメソッドを1つだけ定義できます。CDIによるインスタンス生成が行われたときに呼び出されます。初期化処理などを記述できます。クラスに`@Inject`が指定されたフィールドやメソッドがあった場合，注入が行われた後で呼び出されます。
+
+`@PreDestroy`が付加された，引数のない，戻り値がvoidのメソッドを1つだけ定義できます。CDIによるインスタンス破棄が行われる直前に呼び出されます。破棄に備えたクリーンアップ処理などを記載できます。
+
+#### その他のCDIの機能
+
+紙面の都合で説明を割愛したその他の主なCDIの機能として，以下のようなものがあります。
+
+- ディスポーザークラス（`@Disposes`）
+- インターセプター（`@Interceptor`）とデコレーター（`@Decorator`）
+- BeanのProgrammatic Lookup（`Instance<T>`）
+- 代替（Alternative）実装と特殊化（Specialization）
+- イベント通知（`Event<T>`と`@Observes`）
+- ステレオタイプ
+- 除外フィルター
+- CDI拡張（Extension）
