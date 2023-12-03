@@ -121,7 +121,7 @@ VS Codeから起動されるターミナルを確認します。メニューの�
 
 maxOS環境では，zshやbashになっているでしょう。Windows環境でcmdやpwsh，PowerShellなどであれば問題ありません。
 
-Windows環境でUbuntuなどのwsl（Windows Subsystem for Linux）になっていると，Javaの実行環境やファイルパーミッションなどの関連で，このあとの手順が正常に実行できないことがあります。できればcmdなどに変更しておいてください。
+Windows環境でUbuntuなどのwsl（Windows Subsystem for Linux）になっていると，Javaの実行環境やファイルパーミッションなどの関連で，このあとの手順が正常に実行できないことがあります。できればPowerShellなどに変更しておいてください。
 
 ターミナル名の右の＋の横の下むきの∨をクリックし，「規定のプロファイルの選択」を選択します。
 
