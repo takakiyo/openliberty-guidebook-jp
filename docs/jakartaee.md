@@ -10,7 +10,11 @@ Java EE/Jakarta EEは，分散アプリケーションと多層アプリケー�
 
 Java EE/Jakarta EEのもっとも大きな特徴は，それが特定の実装をさすのではなく，標準仕様であるということです。
 
-Java EE/Jakarta EEの実装はOpen Liberty/WebSphere Libertyだけでなく，他にも多くのベンダーの製品やOSSのアプリケーションサーバーが存在しています。仕様に準拠して実装したアプリケーションは，原則的にどこのアプリケーションサーバーでも同じように動作します。開発者は，特定のベンダーの実装に縛られることなく，自由に実行環境を選択してアプリケーションを構築することができます。
+![Jakarta EE 10仕様に準拠した実装](../images/jakartaee1.png)
+
+上記はJakarta EEの公式サイトの「COMPATIBLE PRODUCTS[^1]」に掲載されている，Jakarta EE 10仕様に準拠した実装の一覧です。Java EE/Jakarta EEに対応しているのはOpen Liberty/WebSphere Libertyだけでなく，他にも多くのベンダーの製品やOSSのアプリケーションサーバーが存在しています。仕様に準拠して実装したアプリケーションは，原則的にどこのアプリケーションサーバーでも同じように動作します。開発者は，特定のベンダーの実装に縛られることなく，自由に実行環境を選択してアプリケーションを構築することができます。
+
+[^1]: https://jakarta.ee/compatibility/certification/10/
 
 また，Jakarta EEは特定の企業ではなくコミュニティによってその仕様が策定されています。
 
