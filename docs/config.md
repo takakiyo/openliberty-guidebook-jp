@@ -607,18 +607,32 @@ JDBC 4.2以前を有効にしたときには，以下の順でインスタンス
 Libertyが対応している以下のDBMSについては，汎用のプロパティとは別に専用のプロパティが提供されており，いくつかのデフォルト値も適切にセットされるようになっています。
 
 - IBM Db2
+    - `<properties.db2.jcc>`
+    - `<properties.db2.i.native>`
+    - `<properties.db2.i.toolbox>`
+- Informix
+    - `<properties.informix>`
+    - `<properties.informix.jcc>`
+- Apache Derby
+    - `<properties.derby.client>`
+    - `<properties.derby.embedded>`
 - Microsoft SQL Server
-- PostgreSQL
-- MySQL
-- Embedded Derby
+    - `<properties.microsoft.sqlserver>`
+    - `<properties.datadirect.sqlserver>`
 - Oracle / Oracle UCP / Oracle RAC
+    - `<properties.oracle>`
+    - `<properties.oracle.ucp>`
+- PostgreSQL
+    - `<properties.postgresql>`
+- Sybase
+    - `<properties.sybase>`
 
-たとえば，IBM Db2については，`<properties.db2.jcc>`のようなプロパティが利用できます。
+たとえば，IBM Db2については，`<properties.db2.jcc>`で以下のようなプロパティが利用できます。
 
 ``` xml
-<properties.db2.jcc serverName="localhost" portNumber="50000"
-            databaseName="test"
-            user="db2inst1" password="{xor}OTAwPT4tbm1saw=="/>
+<properties.db2.jcc serverName="localhost" portNumber="50000" 
+        databaseName="test" user="db2inst1" password="{xor}OTAwPT4tbm1saw=="
+        currentSchema="WRKSCHM" currentLockTimeout="30s" />
 ```
 
 また，追加で設定された属性については，パラメーターとしてJDBC Driverに渡されるので，DBMS固有の構成を追加で行うことも可能です。
@@ -628,6 +642,52 @@ Libertyが対応している以下のDBMSについては，汎用のプロパテ
     <properties someProperty="someValue" anotherProperty="5" />
 </dataSource>
 ```
+
+##### データベースのパフォーマンス設定
+
+パフォーマンスに大きな影響をあたえるデータベース設定がいつかあります。
+
+``` xml
+<dataSource jndiName="jdbc/myDB" isolationLevel="TRANSACTION_READ_COMMITTED" 
+    statementCacheSize="60" >
+    <jdbcDriver libraryRef="jdbcLib"/>
+    <properties serverName="localhost" portNumber="5432"
+                databaseName="myDB"
+                user="exampleUser" password="{xor}Oic+Mi8zOg8+LCwoMC07" />
+    <connectionManager maxPoolSize="30" purgePolicy="FailingConnectionOnly" />
+</dataSource>
+```
+
+`<dataSource>`要素の`isolationLevel`属性は，DBコネクションのデフォルトの分離レベルを設定します。以下のものが利用可能です。上のものほど分離レベルが高く安全にDBを利用できますが，パフォーマンスは悪くなります。
+
+- `TRANSACTION_SNAPSHOT`
+    - Microsoft SQL Server JDBC DriverおよびDataDirect Connect for JDBCで利用できるスナップショット分離。
+- `TRANSACTION_SERIALIZABLE`
+    - ダーティー読み取り，反復不能読み取り，および幻像読み取りは防止されます。
+- `TRANSACTION_REPEATABLE_READ`
+    - ダーティー読み取りと反復不能読み取りは防止されます。幻像読み取りは発生する可能性があります。
+- `TRANSACTION_READ_COMMITTED`
+    - ダーティー読み取りは防止されます。反復不能読み取りと幻像読み取りは発生する可能性があります。
+- `TRANSACTION_READ_UNCOMMITTED`
+    - ダーティー読み取り，反復不能読み取り，および幻像読み取りが発生する可能性があります。
+- `TRANSACTION_NONE`
+    - JDBCドライバーがトランザクションをサポートしていないことをしめしています。
+
+RDBMSが，Db2，Informix，Apache Derby，Microsoft SQL ServerもしくはSybaseと識別された場合，デフォルトは`TRANSACTION_REPEATABLE_READ`になります。その他のDBでは，デフォルトは`TRANSACTION_READ_COMMITTED`になります。アプリケーションの特性に応じて分離レベルを下げるとパフォーマンスが改善します。
+
+`<dataSource>`要素の`statementCacheSize`属性は，DBコネクションあたり保持する`PreparedStatement`キャッシュの数を設定します。デフォルトは10です。
+
+アプリケーション内で，常時使用されている`PreparedStatement`のSQL文の種類を調べ（めったに使用されないものは除いてください），その数よりも多い値を設定します。
+
+`<connectionManager>`要素の`maxPoolSize`属性は，コネクションプールが保持する最大のDBコネクション数です。デフォルトは50になります。
+
+`maxPoolSize`の最適値は，使用しているアプリケーションの性質，RDBMSの種類と性能に依存します。少なすぎると，アプリケーションでDBコネクションの取得待ちが発生し，レスポンスが遅延する可能性があります。多すぎると，実行しているSQLやRDBMSの並行実行性能の限界を超え，パフォーマンスがかえって悪化します。テストで最適な値を決定してください。
+
+`<connectionManager>`要素の`purgePolicy`属性は，コネクションプール中のDBコネクションが接続が切れて使用できなくなっていたとき，どの範囲で破棄と再接続を行うかの設定です。
+
+デフォルトの`EntirePool`は，プール内にある全てのDBコネクションを無効とみなして破棄します。安全ですが，利用可能なコネクションも破棄してしまうリスクがあります。ネットワーク通信のTCPのkeepaliveなどによって，長期間通信のないコネクションがOSで切断されるような環境では，`FailingConnectionOnly`や`ValidateAllConnections`に設定した方が，パフォーマンスがよくなることがあります。`FailingConnectionOnly`は，接続に問題があったコネクションのみを破棄します。`ValidateAllConnections`は，接続の問題が発見るとプール中の全てのコネクションの接続を確認します。
+
+##### DataSourceの利用
 
 こうして構成したDataSourceは，Javaアプリケーションからアノテーションなどで指定して利用できます。
 
@@ -641,6 +701,14 @@ DataSource myDB;
 ``` java
 DataSource myDB = InitialContext.doLookup("jdbc/myDB");
 ```
+
+`server.xml`内の他の構成要素から，IDを`dataSourceRef`で指定して利用されることもあります。
+
+`HttpSession`をDBで永続化する`<httpSessionDatabase>`やOAuthやJavaバッチで使用される`<dataStore>`などは，構成にDataSourceを必要とします。
+
+
+### ログの構成
+
 
 ### server.xml以外の構成ファイル
 
