@@ -57,3 +57,12 @@ Webサイトの入力項目やGUIのボタンなどは「項目名」「ボタ�
 
 「ディレクトリ」は，WindowsやmacOS上のツールでは「フォルダー」と表記されていますが，基本的にこれらの用語は同じものを指します。「やってみようOpen Libertyによる開発」編では，基本的に画面の表記に合わせて「フォルダー」を使用します。「リファレンス」編では，基本的にLiberty関連のマニュアル表記にあわせて「ディレクトリ」を使用します。
 
+XML表記で`<dataSource>`や`<jdbcDriver>`のようなタグを「要素」（element）と表記します。要素に追加指定される`jndiName`や`serverName`などを「属性」（attribute）と表記します。
+
+``` xml
+<dataSource jndiName="jdbc/db2DataSource" id="db2DataSource">
+    <jdbcDriver libraryRef="db2jdbc_jar" />
+    <properties.db2.jcc serverName="192.168.1.101" portNumber="8200"
+        databaseName="appdatabase" />
+</dataSource>
+```
