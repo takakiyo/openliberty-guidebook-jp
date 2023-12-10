@@ -132,7 +132,9 @@ Libertyが対応しているJava EE/Jakarta EEのバージョンと，それぞ�
 
 Java EE/Jakarta EEは，単一の仕様ではありません。多くの仕様群から構成される，仕様のパッケージです。
 
-以下は，Jakarta EE 10.0の仕様書から抜粋したJakarta EEの全体像です。
+以下は，Jakarta EE 10.0の仕様書[^2]から抜粋したJakarta EEの全体像です。
+
+[^2]: https://jakarta.ee/specifications/platform/10/jakarta-platform-spec-10.0
 
 ![Jakarata EE仕様の全体像](../images/JakartaEE10.png)
 
@@ -240,6 +242,15 @@ MicroProfileは，クラウドネイティブなマイクロサービス・ア�
 MicroProfileは，Java EEやその後継のJakarta EEと密接に関係しています。2013年にJava EE 7が公開されて以降，Oracle社による仕様策定は停滞が続いていました。しかし，クラウドの利用やKubernetesなどのコンテナ環境の整備がすすみ，マイクロサービスのための技術の必要性はますます高まっていました。
 
 そこで2016年に有志によってEclipse Foundation内で立ち上げられたプロジェクトがMicroProfileです。初期のメンバーは，Red Hat，IBM，Payara，Tomitribeや，London Java Communityです。MicroProfileプロジェクトは，Java EEの仕様の一部を活用しながら，追加で多くの仕様を開発していきます。
+
+MicroProfileが利用しているJava EEの仕様は以下のようなものです。
+
+- JAX-RS：RESTfulなWebサービスをJavaで実現します。
+- JSON-P：JSON形式のデータを作成し，読み込みます。
+- JSON-B：JavaのオブジェクトとJSON形式のデータの相互変換をおこないます。
+- CDI：コンテクスチュアルなDependency Injectionを実現します。
+
+また，以下のような仕様を追加で開発しています。
 
 - Config：外部化された構成データの管理を容易にします。
 - Fault Tolerance：サービスが障害に対して回復力を持つように設計された機能を提供します。

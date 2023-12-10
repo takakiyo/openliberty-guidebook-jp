@@ -21,7 +21,7 @@ Java EE/Jakarta EEでは，RESTfulなWebサービスを構築するためのAPI�
 >[!NOTE]
 >JAX-RSという名称は，Java EE仕様で使用されていた古い名前です。Jakarta EEでの正式な仕様名は「Jakarta RESTful Web Services」となっています。この仕様名に対するアクロニム（頭文字を取った略語）は提供されていません。というか，Jakarta RESTful Web Servicesの仕様書の中でも「JAX-RS application」という用語が多用されています。なので，このガイドの中でも，仕様名の略称として旧仕様名である「JAX-RS」を使用します。
 
-JAX-RSでは，リソースクラスやメソッドにアノテーションを付けることで，Webサービスのエンドポイントを定義します。`@GET`，`@POST`，`@PUT`，`@DELETE`などのアノテーションによって，HTTPのメソッドに応じた処理を柔軟に記述できます。また，`@Path`や`@PathParam`などのアノテーションによって，URLのパスとして表現されたリソースを容易に識別できます。
+JAX-RSでは，リソース・クラスやメソッドにアノテーションを付けることで，Webサービスのエンドポイントを定義します。`@GET`，`@POST`，`@PUT`，`@DELETE`などのアノテーションによって，HTTPのメソッドに応じた処理を柔軟に記述できます。また，`@Path`や`@PathParam`などのアノテーションによって，URLのパスとして表現されたリソースを容易に識別できます。
 
 また，JAX-RSでは，さまざまリソースの表現型に容易に対応できる仕組みが提供されています。
 
@@ -53,7 +53,7 @@ Liberty Starterで新しく作成したプロジェクト`guide-rest`でサン�
 </featureManager>
 ```
 
-Liberty Starterで作成したアプリケーションには，`@ApplicationPath("/api")`をもつ`RestApplication`というJAX-RSのアプリケーションクラスが既に定義されていますので，リソースクラスだけ作成します。
+Liberty Starterで作成したアプリケーションには，`@ApplicationPath("/api")`をもつ`RestApplication`というJAX-RSのアプリケーション・クラスが既に定義されていますので，リソース・クラスだけ作成します。
 
 `src/main/java/com/demo/rest`フォルダーに，`SysPropResource.java`というファイルを新規作成し，以下の内容を保存します。
 
@@ -147,11 +147,15 @@ Libertyでは，JAX-RSのアプリケーションは，Servletなどと同じWeb
 <webApplication contextRoot="/guide-rest" location="guide-rest.war" />
 ```
 
-JAX-RSのアプリケーションには，Javaのクラスとして，アプリケーションクラスとリソースクラスが含まれます。必要に応じてプロバイダークラスが追加されます。
+JAX-RSアプリケーションには，Javaのクラスとして，アプリケーション・クラスとリソース・クラスが含まれます。必要に応じてプロバイダーが追加されます。
 
-### アプリケーションクラス
+![JAX-RSアプリケーションの構造](../images/jaxrs1.png)
 
-アプリケーションクラスは，`jakarta.ws.rs.core.Application`を継承（extends）し，アノテーション`@ApplicationPath`が付与されたクラスです。通常は，アプリケーションに一つ存在します。
+枠が破線のクラスはオプションです。
+
+### アプリケーション・クラス
+
+アプリケーション・クラスは，`jakarta.ws.rs.core.Application`を継承（extends）し，アノテーション`@ApplicationPath`が付与されたクラスです。通常は，アプリケーションに一つ存在します。
 
 ``` java
 package com.demo.rest;
@@ -168,7 +172,7 @@ Webアプリケーションのコンテキスト・ルートに，`@ApplicationP
 
 `@ApplicationPath("/")`を指定すると，Webアプリケーションへのリクエストは全てJAX-RSでハンドリングされるようになります。
 
-Webアプリケーションに，二つ以上のアプリケーションクラスを含めることもできます。その場合は，Webアプリケーションに含まれるリソースクラス（やプロバイダークラス）がどちらのJAX-RSアプリケーションに含まれるのか，一覧を返すメソッドを実装する必要があります。
+Webアプリケーションに，二つ以上のアプリケーション・クラスを含めることもできます。その場合は，Webアプリケーションに含まれるリソース・クラス（やプロバイダー）がどちらのJAX-RSアプリケーションに含まれるのか，一覧を返すメソッドを実装する必要があります。
 
 ``` java
 @ApplicationPath("/common")
@@ -176,10 +180,10 @@ public class CommonRestApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> classes = new HashSet<>();
-        // アプリケーションに属するリソースクラスを登録
+        // アプリケーションに属するリソース・クラスを登録
         classes.add(CommonUserResource.class);
         classes.add(CommonItemResource.class);
-        // プロバイダクラスの登録
+        // プロバイダーの登録
         classes.add(MyCustomExceptionMapper.class);
         return classes;
     }
@@ -192,7 +196,7 @@ public class AdminRestApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> classes = new HashSet<>();
-        // アプリケーションに属するリソースクラスを登録
+        // アプリケーションに属するリソース・クラスを登録
         classes.add(AdminAuditResource.class); 
         classes.add(AdminControlResource.class);
         return classes;
@@ -200,18 +204,21 @@ public class AdminRestApplication extends Application {
 }
 ```
 
-Webアプリケーション中に，JAX-RSのアプリケーションクラスが一つだけの場合，メソッドのオーバーライドは必要ありません。Webアプリケーション中に含まれるリソースクラスなどは，全てそのJAX-RSアプリケーションに属するとみなされます。
+Webアプリケーション中に，JAX-RSのアプリケーション・クラスが一つだけの場合，メソッドのオーバーライドは必要ありません。Webアプリケーション中に含まれるリソース・クラスなどは，全てそのJAX-RSアプリケーションに属するとみなされます。
 
-### リソースクラス
+>[!NOTE]
+>JAX-RSの仕様では，アプリケーション・クラスを作成せず，代わりに`web.xml`ファイルというWebアプリケーションの構成ファイルでJAX-RSアプリケーションを定義する代替方法も提供されています。ですが，ポータビリティや管理の観点から，アプリケーション・クラスを作成する方法をおすすめします。ここでも，あえて構成方法は記述しません。
 
-リソースクラスとは，Webリソースを表し、クライアントからのHTTPリクエストを処理するクラスです。
+### リソース・クラス
+
+リソース・クラスとは，Webリソースを表し、クライアントからのHTTPリクエストを処理するクラスです。
 
 `@Path`アノテーションがついたクラスで，HTTPのメソッドを表す`@GET`，`@POST`，`@PUT`，`@DELETE`などのアノテーションがついたpublicなメソッドを持つクラスとして実装します。
 
 >[!NOTE]
 >HTTPのメソッドを表すアノテーションとしては，他に`@PATCH`，`@HEAD`，`@OPTION`がありますが，これらはほとんど使用されません。
 
-デフォルトでは，リソースクラスのインスタンスはリクエストごとに作成されます。インスタンス変数に保存した値などは，リクエストが完了すると失われます。
+デフォルトでは，リソース・クラスのインスタンスはリクエストごとに作成されます。インスタンス変数に保存した値などは，リクエストが完了すると失われます。
 
 インスタンス変数には，CDIによりインジェクション，およびJAX-RSランタイムによる各種パラメーターのインジェクションが可能です。たとえば，以下のようなインスタンス変数を定義すれば，リクエストのUser-Agentヘッダーを参照することができます。
 
@@ -220,13 +227,13 @@ Webアプリケーション中に，JAX-RSのアプリケーションクラス�
 private String agent;
 ```
 
-ただ，これらについては，後述するリソースメソッドの引数でも同様のものが利用できますので，あまり利用する機会はないかと思います。
+ただ，これらについては，後述するリソース・メソッドの引数でも同様のものが利用できますので，あまり利用する機会はないかと思います。
 
-### リソースメソッド
+### リソース・メソッド
 
-リソースクラスに実装され，リクエストを処理するのがリソースメソッドです。
+リソース・クラスに実装され，リクエストを処理するのがリソース・メソッドです。
 
-リソースメソッドは`@GET`などのHTTPメソッドを表すアノテーションが付与されたpublicなメソッドです。以下は，サンプルのアプリケーションの`SysPropResource`に定義されているリソースメソッドです。
+リソース・メソッドは`@GET`などのHTTPメソッドを表すアノテーションが付与されたpublicなメソッドです。以下は，サンプルのアプリケーションの`SysPropResource`に定義されているリソース・メソッドです。
 
 ``` java
 @GET
@@ -237,11 +244,11 @@ public Properties getAllSysProps() {
 }
 ```
 
-`@Path`アノテーションが付与されていない場合は，リソースクラスの`@Path`に指定されたパスへのアクセスを処理します。このメソッドでは，
+`@Path`アノテーションが付与されていない場合は，リソース・クラスの`@Path`に指定されたパスへのアクセスを処理します。このメソッドでは，
 
 - アプリケーション`guide-rest`のコンテキスト・ルート`/guide-rest`
-- アプリケーションクラス`RestApplication`の`@ApplicationPath("/api")`
-- リソースクラス`SysPropResource`の`@Path("/system")`
+- アプリケーション・クラス`RestApplication`の`@ApplicationPath("/api")`
+- リソース・クラス`SysPropResource`の`@Path("/system")`
 
 を連結した`/guide-rest/api/system`や`/guide-rest/api/system/`へのリクエストを処理します（末尾に`/`をつけたパスも同一のものとして扱われます）。このパスへのGETリクエストが，このメソッドで処理されます。
 
@@ -249,12 +256,12 @@ public Properties getAllSysProps() {
 
 応答として正常応答を表すHTTPステータス200（とボディのない正常応答である204）のみを返す場合は，応答のボディに含めるオブジェクトを直接メソッドから返すことができます。
 
-応答のボディをどのように作成すればいいのか，この場合だとJavaの`Properties`クラスのインスタンスをどのように`application/json`に変換するのかは，後述するプロバイダークラスで制御されます。この場合は，システムでデフォルトで用意されているプロバイダーが適切に変換してくれます。
+応答のボディをどのように作成すればいいのか，この場合だとJavaの`Properties`クラスのインスタンスをどのように`application/json`に変換するのかは，後述するプロバイダーで制御されます。この場合は，システムでデフォルトで用意されているプロバイダーが適切に変換してくれます。
 
 >[!NOTE]
 >このオブジェクトとメディアタイプの組み合わせだと，JSON-BのMessageBodyWriterが選択されます。JSON-Bでは，Javaのコレクションクラスは，標準でJSONに変換が可能です。
 
-サンプルのアプリケーションの`SysPropResource`に定義されている以下のメソッドは，`@Path`アノテーションのついたリソースメソッド（サブ・リソースメソッドと呼ばれることもあります）の例です。
+サンプルのアプリケーションの`SysPropResource`に定義されている以下のメソッドは，`@Path`アノテーションのついたリソース・メソッド（サブ・リソース・メソッドと呼ばれることもあります）の例です。
 
 ``` java
 @GET
@@ -280,10 +287,16 @@ public Response getSysProp(@PathParam("prop") String prop) {
         : Response.status(Status.NOT_FOUND).build();
 }
 ```
+このリソース・メソッドには`@Path`アノテーションが付与されています。よって，このメソッドでは，
 
-`@Path("/{prop}")`は，パラメーターによってテンプレート化されたURLパスの例になります。中括弧でくくられた`{名前}`の部分は，パラメーターとして名前で参照ができます。パラメーターは`/`を除くURLのパス部分の任意の文字列にマッチします。このメソッドの扱うパスは，コンテキスト・ルートや各種のパスを追加して，以下のようになります。
+- アプリケーション`guide-rest`のコンテキスト・ルート`/guide-rest`
+- アプリケーション・クラス`RestApplication`の`@ApplicationPath("/api")`
+- リソース・クラス`SysPropResource`の`@Path("/system")`
+- リソース・メソッド`getSysProp`の`@Path("/{prop}")`
 
-- `/guide-rest/api/system/{prop}`
+を連結した`/guide-rest/api/system/{prop}`へのリクエストを処理します。
+
+この`{prop}`を含んだパスは，パラメーターによってテンプレート化されたURLパスの例になります。中括弧でくくられた`{名前}`の部分は，パラメーターとして名前で参照ができます。パラメーターは`/`を除くURLのパス部分の任意の文字列にマッチします。
 
 たとえば，以下のようなパスのリクエストがあった場合，
 
@@ -292,7 +305,7 @@ public Response getSysProp(@PathParam("prop") String prop) {
 `wlp.*`という文字列が`prop`の名前で参照できます。このパラメーターを，メソッドの引数に`@PathParam("prop")`として受け取っています。
 
 
-#### リソースメソッドのアノテーションが付与された引数
+#### リソース・メソッドの引数
 
 メソッドの引数には，他に以下のようなアノテーションを使用して，リクエストの情報を受け取ることができます。
 
@@ -314,11 +327,11 @@ public Response getSysProp(@PathParam("prop") String prop) {
 - `jakarta.ws.rs.core.HttpHeaders`
     - リクエストのヘッダーついての各種情報を参照できます
 - `jakarta.ws.rs.core.Application`
-    - 実行しているJAX-RSのアプリケーションクラスを参照できます
+    - 実行しているJAX-RSのアプリケーション・クラスを参照できます
 - `jakarta.ws.rs.core.Configuration`
     - 実行しているJAX-RSアプリケーションの各種設定
 
-これらのインスタンスでえられる情報をテストするリソースクラスです。`src/main/java/com/demo/rest`フォルダーに，`ContextResource.java`というファイルを新規作成し，以下の内容を保存します。
+これらのインスタンスでえられる情報をテストするリソース・クラスです。`src/main/java/com/demo/rest`フォルダーに，`ContextResource.java`というファイルを新規作成し，以下の内容を保存します。
 
 ``` java
 package com.demo.rest;
@@ -427,11 +440,23 @@ Servlet APIが有効になっている環境では，以下の型のメソッド
 
 `HttpServletRequest`が取得できますので，`HttpSession`によるセッション管理も原理的には可能です。ただ，RESTの原則であるステートレスなサービスではなくなってしまうため，使用にあたってはそのデメリットも考慮しつつ，注意深くアプリケーションを設計してください。
 
-リソースメソッドは，アノテーションのつかない引数を一つだけとることができます。その引数には，（もし存在すれば）リクエストのボディが代入されます。送られてきたボディが，どのように指定されたJavaの型に変換されるかは，後述のプロバイダークラスで制御されます。
+リソース・メソッドは，アノテーションのつかない引数を一つだけとることができます。その引数には，（もし存在すれば）リクエストのボディが代入されます。送られてきたボディが，どのように指定されたJavaの型に変換されるかは，後述のプロバイダーで制御されます。
 
-#### リソースメソッドからのResponseによる応答
+ボディを引数で受け取る場合は，受け入れ可能なリクエストのメディアタイプ指定を`@Consumes`アノテーションで指定します。たとえば下記のように指定すると，`application/json`のMIMEタイプを持つリクエストが処理可能になり，ボディのJSONが`Employ`型のオブジェクトに変換されて，引数に渡されます。
 
-リソースメソッドの戻り値として，`Response`を返すと，HTTPステータス200以外の応答を返したり，各種ヘッダーやCookieを付与したレスポンスを生成することができます。
+``` java
+@Path("/{id}")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@POST
+public Response createEmp(@PathParam("id") String id, Employ emp) {
+    ...
+}
+```
+
+#### リソース・メソッドからのResponseによる応答
+
+リソース・メソッドの戻り値として，`Response`を返すと，HTTPステータス200以外の応答を返したり，各種ヘッダーやCookieを付与したレスポンスを生成することができます。
 
 `Response`はビルダーパターンを採用しています。まず`Response.ResponseBuilder`を返すstaticメソッドの何れかを呼び出します。
 
@@ -460,11 +485,11 @@ Servlet APIが有効になっている環境では，以下の型のメソッド
 
 最後に`build()`メソッドを実行して，`Response`のオブジェクトを生成します。
 
-### プロバイダークラス
+### プロバイダー
 
-プロバイダークラスは，JAX-RSランタイムの拡張ポイントであり，RESTfulサービスのさまざまな側面をカスタマイズするために使用されます。
+プロバイダーは，JAX-RSランタイムの拡張ポイントであり，RESTfulサービスのさまざまな側面をカスタマイズするために使用されます。
 
-プロバイダークラスには，以下の4種類があります。
+プロバイダーには，以下の4種類があります。
 
 - Javaのオブジェクトを変換して応答ストリームに書き込むMessageBodyWriter
 - 要求ストリームを処理してJavaのオブジェクトに変換するMessageBodyReader
@@ -473,7 +498,7 @@ Servlet APIが有効になっている環境では，以下の型のメソッド
 
 `MessageBodyWriter`は，特定のJavaのクラスを，指定されたメディアタイプで応答に書き込むためのプロバイダーです。`MessageBodyWriter`は，開発者が独自に作成してJAX-RSアプリケーションに組み込むこともできますが，デフォルトの`MessageBodyWriter`もいくつか用意されています。
 
-リソースメソッドから以下の型が返されたときには，何もせずにそのまま（UTF-8のエンコーディングで）クライアントに出力する組み込みの`MessageBodyWriter`が使用されます。これらの型には，整形済みのJSONなど，そのまま送信できるデータが格納されていることが期待されています。
+リソース・メソッドから以下の型が返されたときには，何もせずにそのまま（UTF-8のエンコーディングで）クライアントに出力する組み込みの`MessageBodyWriter`が使用されます。これらの型には，整形済みのJSONなど，そのまま送信できるデータが格納されていることが期待されています。
 
 - `String`，`byte[]`
 - `java.io.InputStream`，`java.io.Reader`，`java.io.File`
@@ -487,11 +512,50 @@ Servlet APIが有効になっている環境では，以下の型のメソッド
 - `java.io.InputStream`，`java.io.Reader`，`java.io.File`
 - `javax.activation.DataSouce`
 
-クライアントが`MediaType.APPLICATION_JSON`でリクエストのボディを送信してきて，リソースメソッドで下記以外のJavaのオブジェクト型を引数にボディを受け取った時には，同様にJSON-Bの`MessageBodyReader`が利用されます。
+クライアントが`MediaType.APPLICATION_JSON`でリクエストのボディを送信してきて，リソース・メソッドで下記以外のJavaのオブジェクト型を引数にボディを受け取った時には，同様にJSON-Bの`MessageBodyReader`が利用されます。
 
 >[!NOTE]
 >XMLも同様です。`MediaType.APPLICATION_XML`でレスポンスを送信するとき，`application/xml`のMIMEタイプのリクエストのボディを受信するときに，上記の`String`や`byte[]`等以外の型を使用したときには，JAX-B/Jakarta XML Bindingが利用できる環境では，それが利用されます。
 
+#### 例外マッピング・プロバイダー
+
+例外マッピング・プロバイダーは，リソース・メソッドの実行中にExceptionが発生したとき，例外をHTTPレスポンスにマッピングします。
+
+たとえば，`MyCustomException`が発生したときの処理を行うプロバイダーは，`ExceptionMapper<MyCustomException>`インターフェースを実装したクラスとして定義し，`@Provider`アノテーションを付与し，`toResponse`メソッドをオーバーライドします。
+
+``` java
+import javax.ws.rs.ext.Provider;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.MediaType;
+
+@Provider
+public class MyCustomExceptionMapper implements ExceptionMapper<MyCustomException> {
+
+    @Override
+    public Response toResponse(MyCustomException exception) {
+        // 例外のロギングなどの処理
+            ///
+        // 例外からHTTPレスポンスを生成
+        return Response
+                .status(500)
+                .entity(new ErrorMessage(exception.getMessage()))
+                .type(MediaType.APPLICATION_JSON)
+                .build();
+    }
+
+    // エラーメッセージのための内部クラス（JSON-BでJSONに変換される）
+    private static class ErrorMessage {
+        private String message;
+        public ErrorMessage(String message) {
+            this.message = message;
+        }
+        public String getMessage() {
+            return message;
+        }
+    }
+}
+```
 
 ### JSONとは
 
@@ -547,7 +611,7 @@ valueタイプは以下の7つが定義されています。
 >[!NOTE]
 >JSONの仕様には，コメントの記法すらありません。これでは構成ファイルなどに用いる際に非常に困るので，各種の拡張や記法が考案されています。JSONを拡張したJSON5では，通常のJavaScriptのように`/*`と`*/`でくくられたコメントや，`//`から改行までのコメントが許されています。VS Codeの`settings.json`でも，`//`から改行までのコメントが使用できます。
 
-JavaにおいてJSONをあつかうAPIは，XMLをあつかうAPIと同じような形式で提供されています。以下にその関係とAPIが提供されているパッケージ名を示します。
+Jakarta EEにおいてJSONをあつかうAPIは，XMLをあつかうAPIと同じような形式で提供されています。以下にその関係とAPIが提供されているパッケージ名を示します。
 
 |APIの種類|JSON|XML|
 |---|----|---|
@@ -639,7 +703,7 @@ JsonObject jsonobj = Json.createObjectBuilder()
 このように生成されたオブジェクトの各要素を読み出すこともできます。
 
 ``` java
-String homeNumber = jsonobj
+String firstPhoneNumber = jsonobj
     .getJsonArray​("phoneNumber")
         .getJsonObject​(0)
             .getString​("number");  // "212 555-1234" が返される
@@ -664,7 +728,7 @@ JsonReader reader = Json.createReader(in);
 JsonValue json = reader.readValue();
 ```
 
-JAX-RSのリソースメソッドでは，`JsonValue`やそのサブクラスの型で値をかえし，クライアントにJSONを送信することができます。また，`JsonValue`の型で（クライアントが`appliction/json`のMIME型で送信していれば）リクエストのボディを受け取ることができます。
+JAX-RSのリソース・メソッドでは，`JsonValue`やそのサブクラスの型で値をかえし，クライアントにJSONを送信することができます。また，`JsonValue`の型で（クライアントが`appliction/json`のMIME型で送信していれば）リクエストのボディを受け取ることができます。
 
 >[!TIP]
 >前章で解説したように，`String`を返すメソッドでは，JSONへの自動変換は行われません。単純な文字列をJSONで返すメソッドは，JsonValueを介して変換をしなければなりません。つまり，以下のようなJSONとしては不正な形式を，
@@ -693,7 +757,6 @@ JAX-RSのリソースメソッドでは，`JsonValue`やそのサブクラスの
 
 ### JSON BindingによるJSONの生成
 
-### リソースクラスのライフサイクル
+### リソース・クラスのライフサイクル
 
-### @ContextによるServlet APIとの連携
 

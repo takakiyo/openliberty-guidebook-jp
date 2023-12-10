@@ -707,9 +707,6 @@ DataSource myDB = InitialContext.doLookup("jdbc/myDB");
 `HttpSession`をDBで永続化する`<httpSessionDatabase>`やOAuthやJavaバッチで使用される`<dataStore>`などは，構成にDataSourceを必要とします。
 
 
-### ログの構成
-
-
 ### server.xml以外の構成ファイル
 
 Libertyは，XML形式以外の構成ファイルもいくつか使用します。
@@ -793,6 +790,7 @@ Javaヒープサイズの設定や，Verbose GCの設定などをおこないま
 
 ログの出力などを記述する場合は，カレントディレクトリからの相対パスで記述するようにします。カレントディレクトリのデフォルトは`${server.output.dir}`ですが，前述の環境変数`SERVER_WORKING_DIR`などで変更することができます。
 
+
 #### bootstrap.propreties
 
 server.xmlで使用する変数を定義します。現在は環境変数を構成ファイルで参照できるようになったので，以前ほどは利用する機会が少なくなっています。
@@ -805,8 +803,52 @@ com.ibm.ws.logging.trace.specification=*=audit:com.myco.mypackage.*=finest
 
 `bootstrap.propreties`は，`${server.config.dir}/bootstrap.propreties`に配置されます。
 
-`bootstrap.propreties`は`server.xml`が読み込まれるよりも先に，サーバープロセスの起動処理の最初期に読み込まれるため，ログやトレースのフォーマットを指定するために使用されることがあります。たとえば，Libertyを`server run`でフォアグランドで起動したときにコンソールに出力されるメッセージを，タイムスタンプ付きのものにするには，以下のように記述します。
+`bootstrap.propreties`は`server.xml`が読み込まれるよりも先に，サーバープロセスの起動処理の最初期に読み込まれるため，ログやトレースの構成をするために使用されます。
+
+
+##### ログの構成
+
+Libertyがデフォルトで出力するログは以下の3種類です。
+
+- メッセージログ：`messages.log`
+- コンソール出力（Libertyがバッググランドで起動されたときには`console.log`）
+- `${server.output.dir}/logs/ffdc`に記録される保守ログ
+
+また，
+
+- トレース：`trace.log`
+
+これらのうち，保守ログは基本的にIBMのサポート部門で利用されます。またトレースも，サポート部門からの依頼で指定された値を設定して，再現実験を行いながら取得するものとなります。
+
+ユーザーが利用するのはメッセージログおよびコンソール出力です。
+
+>[!NOTE]
+>ログは基本的にテキストフォーマットで出力されます。構成によって，バイナリーファイル，もしくはJSONとして記録することも可能ですが，あまりメリットはありませんので，このガイドでは説明は割愛します。
+
+ログの構成は，`server.xml`および`bootstrap.propreties`の両方でおこなうことができます。`server.xml`で構成する場合は，`<logging>`要素の属性で記述します。`bootstrap.propreties`で構成する場合は，`属性名=値`を記述します。`server.xml`と`bootstrap.propreties`の対応関係は以下のようになります。
+
+|`server.xml`の属性|`bootstrap.propreties`の属性名|デフォルト値|説明|
+|----|----|----|----|
+|`logDirectory`|`com.ibm.ws.logging.log.directory`|`${server.output.dir}/logs`|ログを出力するディレクトリ|
+|`messageFileName`|`com.ibm.ws.logging.message.file.name`|`messages.log`|メッセージログのファイル名|
+|`messageFormat`|`com.ibm.ws.logging.message.format`|`SIMPLE`|メッセージログのフォーマット。メッセージを出力したクラス名を短縮して出力する`TBASIC`を設定可能|
+|`rolloverInterval`|`com.ibm.ws.logging.rollover.interval`|-1|メッセージログを時間単位でロールオーバーする場合の期間。|
+|`rolloverStartTime`|`com.ibm.ws.logging.rollover.start.time`|`00:00`|メッセージログを時間単位でロールオーバーする場合の切り替え時刻。|
+|`maxFileSize`|`com.ibm.ws.logging.max.file.size`|20|メッセージログをサイズでロールーバーする場合のサイズ（Mバイト）。|
+|`maxFiles`|`com.ibm.ws.logging.max.files`|2|メッセージログをロールオーバーした際に残す履歴の数。|
+|`consoleFormat`|`com.ibm.ws.logging.console.format`|`DEV`|コンソール出力のフォーマット。メッセージログと同じ形式の`SIMPLE`，クラス名を短縮して出力する`TBASIC`を設定可能|
+|`consoleLogLevel`|`com.ibm.ws.logging.console.log.level`|`AUDIT`|コンソールに出力するレベル。`OFF`で出力なし。`ERROR`，`WARNING`，`AUDIT`，`INFO`の順で出力が多くなる。|
+|`copySystemStreams`|`com.ibm.ws.logging.copy.system.streams`|`true`|アプリケーションが`System.out`および`System.err`に出力した内容をコンソール出力にコピーするか。|
+|`traceFileName`|`com.ibm.ws.logging.trace.file.name`|`trace.log`|トレースを取得する場合のファイル。`traceSpecification`で，いずれかのコンポーネントでinfoより高いレベルが指定されると，トレースの記録が開始される。|
+|`traceFormat`|`com.ibm.ws.logging.trace.format`|`ENHANCED`|トレースを記録するフォーマット。|
+|`traceSpecification`|`com.ibm.ws.logging.trace.specification`|`*=info`|どのコンポーネントでトレースを有効にするかの指定。|
+|`suppressSensitiveTrace`|`com.ibm.ws.logging.suppress.sensitive.trace`|`false`|トレースから，パスワードなどセンシティブな情報をマスクするかの設定。|
+|`maxFfdcAge`|`com.ibm.ws.logging.max.ffdc.age`|-1|保守ログを，保存する期間。|
+
+ログについては，サーバー起動の最初期，`server.xml`が料理されるよりも前に読み込まれる`bootstrap.propreties`で構成する方が適切な場合があります。
+
+実働環境では，必要に応じてログの保存サイズや保存数を増やしてください。また，コンテナ環境などでは，コンソール出力をツールを使って集約していることも多いかと思います。その場合，メッセージにタイムスタンプがついていないと困ることも多いので，
 
 ``` properties
-com.ibm.ws.logging.console.format=tbasic
+com.ibm.ws.logging.console.format=SIMPLE
 ```

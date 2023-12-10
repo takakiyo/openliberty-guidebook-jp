@@ -103,7 +103,10 @@ Libertyのプラグインを組み込んだ最小限のMavenのプロジェク�
     </build>
 </project>
 ```
+
 ここでは，Java SE 17とMicroProfile 5.0に準拠したアプリケーションを実行するプロジェクトになっています。
+
+#### プロジェクト全体の構成
 
 準拠するJava SEのバージョンなどを`<properties>`で設定します。あわせてソースファイルを記述している文字コードをUTF-8に指定しています。
 
@@ -114,6 +117,10 @@ Libertyのプラグインを組み込んだ最小限のMavenのプロジェク�
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 </properties>
 ```
+
+Libertyプラグインでも，ここに記述することで有効になるプロパティがいくつも提供されています。必要に応じて記載します。
+
+#### アプリケーションが使用する依存関係
 
 アプリケーションが利用するAPIを，`<dependencies>`で記述します。ここでは，MicroProfile 5.0を依存関係に指定しています。
 
@@ -149,7 +156,15 @@ Java EE 8を使用する場合は，以下のような依存関係を指定し�
 </dependency>
 ```
 
-Libertyのプラグインを`<build>`の`<plugins>`に`<plugin>`として組み込みます。ここでは直接組み込んでいますが，`<pluginManagement>`経由で組み込んだり，`<profile>`として組み込んだりすることもできます。
+これらの標準APIの依存関係は`<scope>provided</scope>`で利用されます。コンパイル時には使用されますが，実行時にはランタイム（この場合はLiberty）から提供されるため，成果物には含まない，という意味です。標準仕様のAPIに必要なクラスは，実行時にはLibertyから提供されます。
+
+WASの構成に利用するデータベースやMQのDriverなども，`<scope>provided</scope>`の依存関係に追加します。これらは，後述の`<copyDependencies>`を使用して，Libertyの特定のディレクトリに配置します。
+
+一方で，アプリケーションが追加で必要とする外部ライブラリは，`<scope>compile</scope>`の依存関係で追加します。このスコープで指定された依存関係は，成果物のWebアプリケーション（WARファイル）の`/WEB-INF/lib`ディレクトリーに配置されます。このディレクトリに配置されたJARファイルは，実行時にアプリケーションから参照することができます。
+
+#### Liberty Maven Pluginの組み込み
+
+Libertyのプラグインを`<build>`の`<plugins>`に`<plugin>`として組み込みます。
 
 ``` xml
 <plugin>
@@ -158,6 +173,46 @@ Libertyのプラグインを`<build>`の`<plugins>`に`<plugin>`として組み�
     <version>3.10</version>
 </plugin>
 ```
+
+ここでは直接組み込んでいますが，`<pluginManagement>`経由で組み込んだり，`<profile>`として組み込んだりすることもできます。
+
+Liberty Starterで生成したMavenプロジェクトでは，`<pluginManagement>`経由でプラグインの組み込みが行われています。`<pluginManagement>`は，子プロジェクトなども含めたプロジェクト全体に有効なプラグインの構成情報を記述します。ここに記述しただけだと，構成だけ行われて有効にはならないので，`<pluginManagement>`の外側の`<plugins>`にも，改めてプラグインを記載します。
+
+``` xml
+<build>
+    <finalName>maven-sample</finalName>
+    <pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.2</version>
+            </plugin>
+            <plugin>
+                <groupId>io.openliberty.tools</groupId>
+                <artifactId>liberty-maven-plugin</artifactId>
+                <version>3.10</version>
+                <configuration>
+                    <!-- ここに各種設定を記述する -->
+                </configuration>                
+            </plugin>
+        </plugins>
+    </pluginManagement>
+    <plugins>
+        <plugin>
+            <groupId>io.openliberty.tools</groupId>
+            <artifactId>liberty-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+```
+
+>[!NOTE]
+>`maven-war-plugin`は，`<packaging>war</packaging>`が指定されれば自動的に有効になるので，本来であればわざわざ記載しなくてもいいのですが。状況によって`<failOnMissingWebXml>`の設定が必要になるため記載されています。
+>
+>古いJava EE仕様では，Webアプリケーションの設定を行う`web.xml`ファイルは必須でした。しかし，Java EE 6以降（Servlet API 3.0以降）では，アノテーションで各種の設定が可能になったため，`web.xml`はオプションになっています。そのため`maven-war-plugin`は，依存関係にServlet API 3.0以降が含まれていれば`<failOnMissingWebXml>`のデフォルトが`false`になり，アプリケーションに`web.xml`が含まれていなくてもビルドできるようになっています。
+>
+>Libertyにおいては，Java EE/Jakarta EEを使用しない，純粋にMicroProfileだけを使用したアプリケーションも利用可能です。このようなアプリケーションの場合，WARにパッケージングされるWebアプリケーションの形を取りながら，Servlet APIが依存関係に含まれていないので`<failOnMissingWebXml>`のデフォルトが`true`になってしまい，ビルドに失敗してしまいます。このため，MicroProfileだけを使用するアプリケーションでは，`maven-war-plugin`プラグインに`<failOnMissingWebXml>false</failOnMissingWebXml>`の設定が必須になります。
 
 ### Libertyのプラグインのプロジェクト構造
 
@@ -264,6 +319,7 @@ Libertyの環境に，依存関係で定義されたJARファイルを追加で�
     <groupId>com.ibm.db2</groupId>
     <artifactId>jcc</artifactId>
     <version>11.5.8.0</version>
+    <scope>provided</scope>
 </dependency>
 ```
 
