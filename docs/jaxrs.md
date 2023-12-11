@@ -220,7 +220,7 @@ Webアプリケーション中に，JAX-RSのアプリケーション・クラ�
 
 デフォルトでは，リソース・クラスのインスタンスはリクエストごとに作成されます。インスタンス変数に保存した値などは，リクエストが完了すると失われます。
 
-インスタンス変数には，CDIによりインジェクション，およびJAX-RSランタイムによる各種パラメーターのインジェクションが可能です。たとえば，以下のようなインスタンス変数を定義すれば，リクエストのUser-Agentヘッダーを参照することができます。
+インスタンス変数には，CDIによりインジェクション，およびJAX-RSランタイムによる各種パラメーターのインジェクションが利用可能です。たとえば，以下のようなインスタンス変数を定義すれば，リクエストのUser-Agentヘッダーを参照することができます。
 
 ``` java
 @HeaderParam("User-Agent")
@@ -307,7 +307,7 @@ public Response getSysProp(@PathParam("prop") String prop) {
 
 #### リソース・メソッドの引数
 
-メソッドの引数には，他に以下のようなアノテーションを使用して，リクエストの情報を受け取ることができます。
+リソース・クラスのインスタンス変数や，リソース・メソッドの引数には，他に以下のようなアノテーションを使用して，リクエストの情報を受け取ることができます。
 
 - `@PathParam("path")`
     - テンプレート化されたURLパスに含まれている`{path}`などのパラメーターに指定された値
@@ -331,6 +331,75 @@ public Response getSysProp(@PathParam("prop") String prop) {
 - `jakarta.ws.rs.core.Configuration`
     - 実行しているJAX-RSアプリケーションの各種設定
 
+これらを使用して，たとえば特定のヘッダーの値をリソース・メソッドが受け取る方法としては，以下のコード中の例示ような三種類があります。
+
+``` java
+package com.demo.rest;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+
+@Path("/header")
+public class HeaderResource {
+
+    // リソース・クラスのフィールドを使用した例
+    @HeaderParam("User-Agent")
+    private String agent;
+
+    @GET
+    @Path("/agent")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getAgent() {
+        return agent;
+    }
+
+    // リソース・メソッドの引数を使用した例
+    @GET
+    @Path("/accept")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getAcceptHeader(@HeaderParam("Accept") String accept) {
+        return accept;
+    }
+
+    // @ContextでHttpHeadersを受け取る例
+    @GET
+    @Path("/{name}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getHead(@PathParam("name") String name, @Context HttpHeaders request) {
+        String value = request.getRequestHeaders().getFirst(name);
+        return (value != null)?
+            Response.ok(name + ": " + value).build()
+            : Response.status(Status.NOT_FOUND).build();
+    }
+}
+```
+
+一つ目は，インスタンス変数で受け取る例です。ただ，インスタンス変数は，リソース・クラスのライフサイクルによっては，インスタンス変数は他のリクエストと共用される可能性があります。この用途は，あまり利用しない方がいいでしょう。
+
+``` java
+// リソース・クラスのフィールドを使用した例
+@HeaderParam("User-Agent")
+private String agent;
+```
+
+二つ目は，メソッドの引数で受け取る例です。通常はこの方法を使用します。
+
+``` java
+public String getAcceptHeader(@HeaderParam("Accept") String accept) {
+```
+
+三つ目は，`@Context`アノテーションを使用して，汎用のクラスを指定することです。特定のヘッダーではなく，全てのヘッダー情報をまとめて受け取りたいときなど，より広範囲の情報を取得するのに便利です。
+
+``` java
+public Response getHead(@PathParam("name") String name, @Context HttpHeaders request) {
+```
+
+<!--
 これらのインスタンスでえられる情報をテストするリソース・クラスです。`src/main/java/com/demo/rest`フォルダーに，`ContextResource.java`というファイルを新規作成し，以下の内容を保存します。
 
 ``` java
@@ -431,6 +500,8 @@ public class ContextResource {
 - http://localhost:9080/guide-rest/api/context/application
 - http://localhost:9080/guide-rest/api/context/configuration
 
+-->
+
 Servlet APIが有効になっている環境では，以下の型のメソッドの引数にも`@Context`のアノテーションをつけて，インスタンスを取得できます。
 
 - `jakarta.servlet.ServletConfig`
@@ -496,9 +567,13 @@ public Response createEmp(@PathParam("id") String id, Employ emp) {
 - 発生した例外を応答にマッピングするExceptionMapper
 - コンテキスト情報を提供するContextResolver
 
-`MessageBodyWriter`は，特定のJavaのクラスを，指定されたメディアタイプで応答に書き込むためのプロバイダーです。`MessageBodyWriter`は，開発者が独自に作成してJAX-RSアプリケーションに組み込むこともできますが，デフォルトの`MessageBodyWriter`もいくつか用意されています。
+#### ボディを入出力するプロバイダー
 
-リソース・メソッドから以下の型が返されたときには，何もせずにそのまま（UTF-8のエンコーディングで）クライアントに出力する組み込みの`MessageBodyWriter`が使用されます。これらの型には，整形済みのJSONなど，そのまま送信できるデータが格納されていることが期待されています。
+`MessageBodyWriter`は，特定のJavaのクラスを，指定されたメディアタイプで応答に書き込むためのプロバイダーです。JAX-RSアプリケーションに登録されたいくつかの`MessageBodyWriter`のなかから，指定されたメディアタイプ，変換するオブジェクトの種類，リソースメソッドに付加されたアノテーションで，使用する`MessageBodyWriter`が決定されます。
+
+`MessageBodyWriter`は，開発者が独自に作成してJAX-RSアプリケーションに組み込むこともできますが，デフォルトの`MessageBodyWriter`もいくつか用意されています。以下，仕様ででデフォルトの動作として規定されているものを解説します。
+
+メディアタイプにかかわらず，リソース・メソッドから以下の型が返されたときには，何もせずにそのまま（UTF-8のエンコーディングで）クライアントに出力する組み込みの`MessageBodyWriter`が使用されます。これらの型には，整形済みのJSONなど，そのまま送信できるデータが格納されていることが期待されています。
 
 - `String`，`byte[]`
 - `java.io.InputStream`，`java.io.Reader`，`java.io.File`
@@ -506,7 +581,7 @@ public Response createEmp(@PathParam("id") String id, Employ emp) {
 
 レスポンスのメディアタイプとして`MediaType.APPLICATION_JSON`が指定されたときで，上記以外のオブジェクトが返された場合，JSON-B/Jakarta JSON Bindingが利用できる環境では，それを利用した`MessageBodyWriter`が選択されます。そのため，通常は，JSON-BでJavaのオブジェクトがどのようにJSONに変換されるかを理解し，必要に応じてJSON-Bの仕組みで変換をカスタマイズすることが必要となります。
 
-また，MessageBodyReaderについても，以下の型については，そのまま（UTF-8のエンコーディングで）クライアントから送信されたボディを受け取ることができます。
+また，`MessageBodyReader`についても，以下の型については，そのまま（UTF-8のエンコーディングで）クライアントから送信されたボディを受け取ることができます。
 
 - `String`，`byte[]`
 - `java.io.InputStream`，`java.io.Reader`，`java.io.File`
@@ -516,6 +591,53 @@ public Response createEmp(@PathParam("id") String id, Employ emp) {
 
 >[!NOTE]
 >XMLも同様です。`MediaType.APPLICATION_XML`でレスポンスを送信するとき，`application/xml`のMIMEタイプのリクエストのボディを受信するときに，上記の`String`や`byte[]`等以外の型を使用したときには，JAX-B/Jakarta XML Bindingが利用できる環境では，それが利用されます。
+
+JSONでデータを送受信する場合は，JSON-Bで変換内容を制御できるようになったため，自作の`MessageBodyWriter`および`MessageBodyReader`を実装する機会は減ってきています（同様にXMLを送受信する場合はJAX-Bで制御可能）。JSONおよびXML以外のメディアタイプを入出力する場合で，Javaのオブジェクトとの相互変換を実行したい場合にのみ，実装してJAX-RSアプリケーションに組み込むことになります。
+
+たとえば`MyCustomObject`クラスを変換して出力するプロバイダは，インターフェース`MessageBodyWriter<MyCustomObject>`を実装したクラスとして作成します。クラスにアノテーション`@Provider`を付与することで，JAX-RSアプリケーションに組み込まれます。
+
+指定されたメディアタイプに書き込めるかを返す`isWriteable`，`OutputStream`にインスタンスを書き込む`writeTo`，オブジェクトを文字列に変換する`convertObjectToString`のメソッドを実装します。
+
+``` java
+import javax.ws.rs.ext.MessageBodyWriter;
+import javax.ws.rs.ext.Provider;
+import java.lang.reflect.Type;
+import java.io.OutputStream;
+import java.io.IOException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import java.lang.annotation.Annotation;
+
+@Provider
+public class MyCustomMessageBodyWriter implements MessageBodyWriter<MyCustomObject> {
+
+    @Override
+    public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+        // このメソッドは、このライターが指定されたタイプのオブジェクトのシリアライズを
+        // 処理できるかどうかを判断します。
+        return MyCustomObject.class.isAssignableFrom(type);
+    }
+
+    @Override
+    public void writeTo(MyCustomObject myCustomObject, 
+        Class<?> type, Type genericType, Annotation[] annotations,
+        MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
+        OutputStream entityStream) throws IOException {
+        // ここで、myCustomObjectをHTTPレスポンスのボディにシリアライズします。
+        // entityStreamにシリアライズされたデータを書き込みます。
+        String output = convertObjectToString(myCustomObject); // カスタムシリアライズロジック
+        entityStream.write(output.getBytes());
+    }
+
+    // カスタムオブジェクトを文字列に変換するユーティリティメソッド
+    private String convertObjectToString(MyCustomObject myCustomObject) {
+        // オブジェクトを文字列に変換するロジック
+        return myCustomObject.toString();
+    }
+}
+```
+
+組み込みのプロバイダーとユーザーが追加したプロバイダーだと，前者の方が優先されます。ユーザーのプロバイダーの動作でデフォルトを上書きするには，クラスに`@Priority(Priorities.ENTITY_CODER-1)`のアノテーションを付与します。
 
 #### 例外マッピング・プロバイダー
 
