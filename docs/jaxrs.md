@@ -207,7 +207,7 @@ public class AdminRestApplication extends Application {
 Webアプリケーション中に，JAX-RSのアプリケーション・クラスが一つだけの場合，メソッドのオーバーライドは必要ありません。Webアプリケーション中に含まれるリソース・クラスなどは，全てそのJAX-RSアプリケーションに属するとみなされます。
 
 >[!NOTE]
->JAX-RSの仕様では，アプリケーション・クラスを作成せず，代わりに`web.xml`ファイルというWebアプリケーションの構成ファイルでJAX-RSアプリケーションを定義する代替方法も提供されています。ですが，ポータビリティや管理の観点から，アプリケーション・クラスを作成する方法をおすすめします。ここでも，あえて構成方法は記述しません。
+>JAX-RSの仕様では，アプリケーション・クラスを作成せず，代わりに`web.xml`というWebアプリケーションの構成ファイルでJAX-RSアプリケーションを定義する代替方法も提供されています。ですが，ポータビリティや管理の観点から，アプリケーション・クラスを作成する方法をおすすめします。ここでも，あえて構成方法は記述しません。
 
 ### リソース・クラス
 
@@ -256,7 +256,7 @@ public Properties getAllSysProps() {
 
 応答として正常応答を表すHTTPステータス200（とボディのない正常応答である204）のみを返す場合は，応答のボディに含めるオブジェクトを直接メソッドから返すことができます。
 
->![!NOTE]
+>[!NOTE]
 >Javaのオブジェクトを直接メソッドから返している場合に，200応答以外を返したい場合は例外（Exception）を使用します。メソッドから`jakarta.ws.rs.WebApplicationException`およびそのサブクラスの例外をthrowすると，指定されたHTTP応答を返すことができます。ですが，200応答以外を返す可能性がある場合には，できれば後述の`Response`を使用した応答を返すようにしましょう。
 
 応答のボディをどのように作成すればいいのか，この場合だとJavaの`Properties`クラスのインスタンスをどのように`application/json`に変換するのかは，後述するプロバイダーで制御されます。この場合は，システムでデフォルトで用意されているプロバイダーが適切に変換してくれます。
@@ -560,9 +560,9 @@ public Response createEmp(@PathParam("id") String id, Employ emp) {
 
 `Response.ResponseBuilder`では，以下のようなメソッドが提供されています[^1]。
 
-[^1]:それぞれのメソッドの詳細は，Javadocを参照してください。
-- Response.ResponseBuilder (Jakarta RESTful Web Services API documentation)
-    - [https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/core/response.responsebuilder](https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/core/response.responsebuilder)
+[^1]: それぞれのメソッドの詳細は，Javadocを参照してください。
+Response.ResponseBuilder (Jakarta RESTful Web Services API documentation)  
+[https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/core/response.responsebuilder](https://jakarta.ee/specifications/restful-ws/3.1/apidocs/jakarta.ws.rs/jakarta/ws/rs/core/response.responsebuilder)
 
 |メソッド|説明|
 |--------|----|
@@ -692,13 +692,13 @@ public class ApplicationResource {
 
 一番目の`RequestResource`は，何回アクセスしても`count`は1のままです。リクエストごとに新規にインスタンスが作成され，`count`も毎回初期化されていることがわかります。これは通常のJAX-RSアプリケーションのリソース・クラスの動作と同じになります。
 
-二番目の`SessionResource`は，リロードすると`count`の数が増えていきます。サーバーでインスタンスが保持され，リクエストのたびに再利用されていることがわかります。ですが，ブラウザで別のセッションを開いてアクセスすると値が元に戻るため，ユーザーのセッションごとの異なるインスタンスが利用されていることがわかります。
+二番目の`SessionResource`は，リロードすると`count`の数が増えていきます。サーバーでインスタンスが保持され，リクエストのたびに再利用されていることがわかります。ですが，ブラウザで別のセッションを開いてアクセスすると値が元に戻るため，ユーザーのセッションごとに異なるインスタンスが利用されていることがわかります。
 
 三番目の`ApplicationResource`は，リロードすると`count`の数が増えていき，別のブラウザからアクセスしても値が継続していることがわかります。全てのリクエストに対して，共通のインスタンスが使用されています。
 
 リクエストごとにリソース・クラスのインスタンスを作成したくないとき，Servletのようにサーバーで一つだけのインスタンスを作成して利用したいときには，`@ApplicationScoped`を付与したリソース・クラスが利用できます。このようなリソース・クラスを，シングルトン・リソース・クラスと呼ぶこともあります。そのインスタンス変数が複数のリクエスト間，複数のユーザー間で共有されることに注意すれば，問題なく使用することができます。
 
-しかし，`@SessionScoped`を付与したセッション・スコープのリソース・クラスの使用は，可能な限り避けてください。このように実装されたサービスは，RESTの原則である「ステートレス」なサービスではなくなってしまい，分散実行環境などでは設計にあたっての十分な考慮が必要になります。また，Webアプリケーションと違ってログアウト処理を実装できないWebサービスでは，サーバーに保持されるセッションの量についても，注意深い設計が必要となってしまいます。
+しかし，`@SessionScoped`を付与したセッション・スコープのリソース・クラスの使用は，可能な限り避けてください。このように実装されたサービスは，RESTの原則である「ステートレス」なサービスではなくなってしまい，分散実行環境などでは設計にあたっての十分な考慮が必要になります。また，Webアプリケーションと違ってログアウト処理を実装できないWebサービスでは，サーバーに保持されるセッションの数についても，注意深い設計が必要となってしまいます。
 
 
 ### プロバイダー
@@ -914,11 +914,11 @@ BindingはJavaのオブジェクトとJSONやXMLのデータ型を結びつけ�
 
 ### JSON ProcessingによるJSONの生成
 
-Jakarta JSON Processing/JSON-Pは，JSONを直接読み書きするためのAPIです。
+Jakarta JSON Processing（JSON-P）は，JSONを直接読み書きするためのAPIです。
 
-この章では，扱うのが容易なObject Modeを説明します。Object Modeは簡便に利用できますが，JSONをメモリ上にそのまま展開するので，巨大なJSONを扱うのには適していません。パフォーマンスおよびメモリ効率の観点から，扱うJSONが大きくなれば大きくなるほど，Streaming Modelの方が有利になります。逆に言えば，小規模なJSONだけ扱っている範囲では，Object Modeで十分です。
+JSON-Pには二つのModeがありますが，この章では扱うのが容易なObject Modeを説明します。Object Modeは簡便に利用できますが，JSONをメモリ上にそのまま展開するので，巨大なJSONを扱うのには適していません。パフォーマンスおよびメモリ効率の観点から，扱うJSONが大きくなれば大きくなるほど，もう一つのModeであるStreaming Modelの方が有利になります。逆に言えば，小規模なJSONだけ扱っている範囲では，Object Modeで十分です。
 
-JSON Processingでは，JSONデータを以下のようなインターフェースで表現しています。
+JSON-Pでは，JSONデータを以下のようなインターフェースで表現しています。
 
 |インターフェース|説明|
 |-----------|----|
@@ -1030,7 +1030,7 @@ JAX-RSのリソース・メソッドでは，`JsonValue`やそのサブクラス
 >"Hello, \"JSON\" object!"
 >```
 >
->そのため，以下のようにJsonValueを経由してから返す必要があります。
+>そのため，以下のようにJSON-Pで提供されている`JsonValue`を経由してから返す必要があります。
 >
 >``` java
 >@GET
@@ -1044,15 +1044,152 @@ JAX-RSのリソース・メソッドでは，`JsonValue`やそのサブクラス
 
 ### JSON BindingによるJSONの生成
 
-Java API for JSON Binding（JSON-B）/Jakarta JSON Bindingは，JSONとJavaのオブジェクトを相互に変換するための標準的な方法を提供します。
+Jakarta JSON Binding（JSON-B）は，JSONとJavaのオブジェクトを相互に変換するための標準的な方法を提供します。
 
-JSON Bindingでは，JavaオブジェクトからJSONドキュメントへの変換をシリアライズ，JSONドキュメントからJavaオブジェクトへの逆変換をデシリアライズとよびます。それらを単純かつ統一的に行うためのAPIとして設計されています。
+JSON-Bは，同じくJSONを扱うJava標準のAPIであるJSON-Pと異なり，オブジェクトバインディングに特化しています。JSON-Pが低レベルの操作（JSONの生成や解析）を提供するのに対し，JSON-Bは高レベルの操作，オブジェクトとJSONのマッピングを簡潔に行うことを目指しています。そのため，JSON-BはJSON-Pの上位互換としても機能し，エンタープライズ向けアプリケーションでのJSONデータの取り扱いが非常に効率化されます。
+
+JAX-RSで，プロバイダーから一般のクラスのインスタンスが応答として返されたときには，JSON-Bを使用してオブジェクトからJSONへの変換が行われます。
+
+JSON-Bでは，JavaオブジェクトからJSONドキュメントへの変換をシリアライズ，JSONドキュメントからJavaオブジェクトへの逆変換をデシリアライズとよびます。JSON-Bは，それらを単純かつ統一的に行うためのAPIとして設計されています。標準化されたアノテーションやデフォルトの設定により，最小限のコードで効果的なシリアライズ・デシリアライズを実現できます。
 
 ![JSON　Bindingによるシリアライズ・デシリアライズ](../images/json-b1.png)
 
-#### 自動変換されるクラス
+JSON-Bでは，このシリアライズとデシリアライズを行うクラスのインターフェースとして`Jsonb`，`Jsonb`を生成するためのクラスとして`JsonbBuilder`が提供されています。オブジェクトとJSONの相互変換を行う際には，`JsonbBuilder`から`Jsonb`を生成し，その`toJson`メソッド，`fromJson`メソッドを呼び出して変換を行います。
 
-#### 独自クラスの変換
+![シリアライズ・デシリアライズのカスタマイズ](../images/json-b2.png)
+
+JSON-Bは，Javaオブジェクトのフィールドを自動的にJSONに変換し，キーと値のペアとして出力します。変換をカスタマイズする方法は二つあります。変換するクラスにアノテーションを追加すること，`JsonbBuilder`から`Jsonb`を生成するさいに各種のパラメーターを追加することです。
+
+#### シンプルなオブジェクトのシリアライズ
+
+この章では，シンプルなオブジェクトを例にとり，基本的なシリアライズ方法を解説します。
+
+``` java
+public class Person {
+    private String name;
+    private int age;
+
+    // コンストラクタ
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    // ゲッター、セッター
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+```
+
+JavaオブジェクトをJSONにシリアライズするためには，まず`JsonbBuilder`クラスを使って，`Jsonb`インスタンスを作成します。次に，このインスタンスのtoJson()メソッドを使用して，オブジェクトをJSON文字列に変換します。
+
+``` java
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbBuilder;
+
+public class Main {
+    public static void main(String[] args) {
+        // Personオブジェクトの作成
+        Person person = new Person("John Doe", 30);
+        
+        // Jsonbインスタンスの作成
+        Jsonb jsonb = JsonbBuilder.create();
+        
+        // オブジェクトをJSONにシリアライズ
+        String json = jsonb.toJson(person);
+        
+        // 結果の出力
+        System.out.println(json);
+    }
+}
+```
+
+このコードを実行すると，次のようなJSON文字列が出力されます
+
+``` json
+{
+    "name": "John Doe",
+    "age": 30
+}
+```
+
+ここでは，`Person`オブジェクトのフィールド`name`と`age`が，対応するキーと値のペアとしてシリアライズされています。
+
+シリアライズするオブジェクトがネストされた構造や，リスト，マップなどのコレクション型フィールドを含む場合も，JSON-Bはこれらを自動的にシリアライズします。例えば、`Address`というオブジェクトを`Person`オブジェクトに追加してみましょう。
+
+あらたに`Address`というクラスを作成し，
+
+``` java
+public class Address {
+    private String city;
+    private String street;
+
+    // コンストラクタ
+    public Address(String city, String street) {
+        this.city = city;
+        this.street = street;
+    }
+    
+    // ゲッターとセッター
+    ・・・
+}
+```
+
+`Person`オブジェクトにフィールドとして追加します。
+
+``` java
+public class Person {
+    private String name;
+    private int age;
+    private Address address;
+
+    // コンストラクタ
+    public Person(String name, int age, Address address) {
+        this.name = name;
+        this.age = age;
+        this.address = address;
+    }
+
+    // その他のゲッター、セッター
+    ・・・
+}
+```
+
+`Person`オブジェクトをシリアライズすると，`Address`オブジェクトもネストされたJSONオブジェクトとして自動的にシリアライズされます。
+
+``` java
+Person person = new Person("John Doe", 30, new Address("New York", "5th Avenue"));
+String json = jsonb.toJson(person);
+System.out.println(json);
+```
+
+出力されるJSONは次のようになります。
+
+``` json
+{
+    "name": "John Doe",
+    "age": 30,
+    "address": {
+        "city": "New York",
+        "street": "5th Avenue"
+    }
+}
+```
+
+JSON-Bは，オブジェクトのフィールドが他のオブジェクトであっても，そのオブジェクトを再帰的にシリアライズします。このため，複雑なデータ構造も問題なくシリアライズ可能です。
 
 #### アノテーションによるカスタマイズ
 
