@@ -211,7 +211,7 @@ Webアプリケーション中に，JAX-RSのアプリケーション・クラ�
 
 ### リソース・クラス
 
-リソース・クラスとは，Webリソースを表し、クライアントからのHTTPリクエストを処理するクラスです。
+リソース・クラスとは，Webリソースを表し，クライアントからのHTTPリクエストを処理するクラスです。
 
 `@Path`アノテーションがついたクラスで，HTTPのメソッドを表す`@GET`，`@POST`，`@PUT`，`@DELETE`などのアノテーションがついたpublicなメソッドを持つクラスとして実装します。
 
@@ -777,7 +777,7 @@ public class MyCustomMessageBodyWriter implements MessageBodyWriter<MyCustomObje
 
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        // このメソッドは、このライターが指定されたタイプのオブジェクトのシリアライズを
+        // このメソッドは，このライターが指定されたタイプのオブジェクトのシリアライズを
         // 処理できるかどうかを判断します。
         return MyCustomObject.class.isAssignableFrom(type);
     }
@@ -787,7 +787,7 @@ public class MyCustomMessageBodyWriter implements MessageBodyWriter<MyCustomObje
         Class<?> type, Type genericType, Annotation[] annotations,
         MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
         OutputStream entityStream) throws IOException {
-        // ここで、myCustomObjectをHTTPレスポンスのボディにシリアライズします。
+        // ここで，myCustomObjectをHTTPレスポンスのボディにシリアライズします。
         // entityStreamにシリアライズされたデータを書き込みます。
         String output = convertObjectToString(myCustomObject); // カスタムシリアライズロジック
         entityStream.write(output.getBytes());
@@ -1042,9 +1042,9 @@ JAX-RSのリソース・メソッドでは，`JsonValue`やそのサブクラス
 >}
 >```
 
-### JSON BindingによるJSONの生成
+### JSON-B / Jakarta JSON BindingによるJSONの生成
 
-Jakarta JSON Binding（JSON-B）は，JSONとJavaのオブジェクトを相互に変換するための標準的な方法を提供します。
+Java EEの仕様の一つであるJSON-B，その後継であるJakarta JSON Bindingは，JSONとJavaのオブジェクトを相互に変換するための標準的な方法を提供します。
 
 JSON-Bは，同じくJSONを扱うJava標準のAPIであるJSON-Pと異なり，オブジェクトバインディングに特化しています。JSON-Pが低レベルの操作（JSONの生成や解析）を提供するのに対し，JSON-Bは高レベルの操作，オブジェクトとJSONのマッピングを簡潔に行うことを目指しています。そのため，JSON-BはJSON-Pの上位互換としても機能し，エンタープライズ向けアプリケーションでのJSONデータの取り扱いが非常に効率化されます。
 
@@ -1052,7 +1052,7 @@ JAX-RSで，プロバイダーから一般のクラスのインスタンスが�
 
 JSON-Bでは，JavaオブジェクトからJSONドキュメントへの変換をシリアライズ，JSONドキュメントからJavaオブジェクトへの逆変換をデシリアライズとよびます。JSON-Bは，それらを単純かつ統一的に行うためのAPIとして設計されています。標準化されたアノテーションやデフォルトの設定により，最小限のコードで効果的なシリアライズ・デシリアライズを実現できます。
 
-![JSON　Bindingによるシリアライズ・デシリアライズ](../images/json-b1.png)
+![JSON-Bによるシリアライズ・デシリアライズ](../images/json-b1.png)
 
 JSON-Bでは，このシリアライズとデシリアライズを行うクラスのインターフェースとして`Jsonb`，`Jsonb`を生成するためのクラスとして`JsonbBuilder`が提供されています。オブジェクトとJSONの相互変換を行う際には，`JsonbBuilder`から`Jsonb`を生成し，その`toJson`メソッド，`fromJson`メソッドを呼び出して変換を行います。
 
@@ -1060,7 +1060,7 @@ JSON-Bでは，このシリアライズとデシリアライズを行うクラ�
 
 JSON-Bは，Javaオブジェクトのフィールドを自動的にJSONに変換し，キーと値のペアとして出力します。変換をカスタマイズする方法は二つあります。変換するクラスにアノテーションを追加すること，`JsonbBuilder`から`Jsonb`を生成するさいに各種のパラメーターを追加することです。
 
-#### シンプルなオブジェクトのシリアライズ
+#### JSON-Bによるシンプルなオブジェクトのシリアライズ
 
 この章では，シンプルなオブジェクトを例にとり，基本的なシリアライズ方法を解説します。
 
@@ -1075,7 +1075,7 @@ public class Person {
         this.age = age;
     }
 
-    // ゲッター、セッター
+    // ゲッター，セッター
     public String getName() {
         return name;
     }
@@ -1128,7 +1128,7 @@ public class Main {
 
 ここでは，`Person`オブジェクトのフィールド`name`と`age`が，対応するキーと値のペアとしてシリアライズされています。
 
-シリアライズするオブジェクトがネストされた構造や，リスト，マップなどのコレクション型フィールドを含む場合も，JSON-Bはこれらを自動的にシリアライズします。例えば、`Address`というオブジェクトを`Person`オブジェクトに追加してみましょう。
+シリアライズするオブジェクトがネストされた構造や，リスト，マップなどのコレクション型フィールドを含む場合も，JSON-Bはこれらを自動的にシリアライズします。例えば，`Address`というオブジェクトを`Person`オブジェクトに追加してみましょう。
 
 あらたに`Address`というクラスを作成し，
 
@@ -1163,7 +1163,7 @@ public class Person {
         this.address = address;
     }
 
-    // その他のゲッター、セッター
+    // その他のゲッター，セッター
     ・・・
 }
 ```
@@ -1189,11 +1189,227 @@ System.out.println(json);
 }
 ```
 
-JSON-Bは，オブジェクトのフィールドが他のオブジェクトであっても，そのオブジェクトを再帰的にシリアライズします。このため，複雑なデータ構造も問題なくシリアライズ可能です。
+JSON-Bは，オブジェクトのフィールドが他のオブジェクトであっても，そのオブジェクトを再帰的にシリアライズします。このため，`Array`や`List`，`Map`などのコレクションやそれらを組み合わせた複雑なデータ構造も問題なくシリアライズ可能です。
+
+#### JAX-RSでのシリアライズ
+
+Libertyでは，JAX-RSとJSON-Bの両方が有効になっていれば，JSON-Bによるシリアライズが自動的におこなわれます。
+
+JAX-RSのリソースクラスのメソッドで，出力形式としてJSONが指定されており，メソッドの返り値として一般のクラスのオブジェクトやコレクションクラスなどのオブジェクトが指定されている場合，実行環境が内部で`Jsonb`を生成して`toJson`メソッドを呼び出し，JSONへの変換を自動で行ってくれます。
+
+``` java
+@GET
+@Path("/person")
+@Produces(MediaType.APPLICATION_JSON)
+public Person getUriInfo() {
+    Person result;
+    // 各種の処理
+    ・・・
+    return result; // JSONBで変換が行われる
+}
+```
 
 #### アノテーションによるカスタマイズ
 
+シリアライズ・デシリアライズの対象となるクラスにアノテーションを付加することでJSON-Bの挙動をカスタマイズすることができます。
+
+##### @JsonbPropertyを使ったプロパティ名の変更
+
+JSON-Bでは，Javaオブジェクトのフィールド名がそのままJSONのキーとして使用されるのがデフォルトの動作ですが，場合によってはJavaオブジェクトのフィールド名とは異なる名前でJSONに出力したいことがあります。このようなケースでは，`@JsonbProperty`アノテーションを使用してプロパティ名をカスタマイズすることができます。
+
+``` java
+import jakarta.json.bind.annotation.JsonbProperty;
+
+public class Person {
+    @JsonbProperty("full_name")
+    private String name;
+    
+    @JsonbProperty("age_in_years")
+    private int age;
+
+    // コンストラクタ，ゲッター，セッター
+}
+```
+
+上記の例では，`name`フィールドが`full_name`という名前で，`age`フィールドが`age_in_years`という名前でJSONに出力されるように設定されています。これにより，JSONのキー名をAPI仕様や外部システムの要件に合わせて変更することが簡単にできます。
+
+この`Person`クラスをJSON-Bでシリアライズすると，出力されるJSONは以下のようになります。
+
+``` json
+{
+    "full_name": "John Doe",
+    "age_in_years": 30
+}
+```
+
+Javaのフィールド名ではなく，`@JsonbProperty`で指定した名前で出力されます。
+
+デシリアライズ時にも，`@JsonbProperty`で指定した名前を使ってJSONからJavaオブジェクトに変換されます。
+
+なお，プロパティ名はケースセンシティブであるため，指定する名前の大文字・小文字に注意が必要です。
+
+##### @JsonbTransientによるフィールドの無視
+
+JSON-Bでは，JavaオブジェクトのすべてのフィールドがデフォルトでJSONにシリアライズされます。しかし，場合によっては特定のフィールドをJSON出力や入力から除外したいことがあります。例えば，機密情報や一時的なデータ，APIを通じて公開したくないフィールドなどが対象となります。このような場合，`@JsonbTransient`アノテーションを使用して，指定したフィールドをシリアライズおよびデシリアライズから除外することができます。
+
+``` java
+import jakarta.json.bind.annotation.JsonbTransient;
+
+public class User {
+    private String username;
+    
+    @JsonbTransient
+    private String password;
+
+    // コンストラクタ，ゲッター，セッター
+}
+```
+
+上記の例では，`password`フィールドが`@JsonbTransient`アノテーションによってマークされています。これにより，このフィールドはシリアライズされる際にJSONには含まれず，デシリアライズ時にもJSONから無視されます。
+
+この`User`クラスをJSON-Bでシリアライズすると，出力されるJSONは以下のようになります。
+
+``` json
+{
+    "username": "john_doe"
+}
+```
+
+`@JsonbTransient`で指定された`password`フィールドはJSONに含まれていません。`username`フィールドだけが出力されています。
+
+デシリアライズ時にも，`@JsonbTransient`で指定されたフィールドは無視されます。仮に変換前のJSONに`password`が含まれていても，変換後のオブジェクトの`password`は`null`のままになります。データが欠落したままのオブジェクトに変換される可能性があるため，注意が必要です。
+
+`@JsonbTransient`アノテーションは，フィールドだけでなくゲッターやセッターのメソッドに対しても適用することができます。これにより，シリアライズの時，あるいはデシリアライズのときにのみ，特定のフィールドをJSONに含めないというような制御をより柔軟に行えます。
+
+``` java
+public class Product {
+    private String name;
+    private double price;
+
+    @JsonbTransient
+    public double getPrice() {
+        return price;
+    }
+
+    // コンストラクタ，その他のゲッターとセッター
+}
+```
+
+この場合，`getPrice()`メソッドが`@JsonbTransient`でマークされているため，`price`フィールドはシリアライズされず，変換後のJSONには含まれません。ですがJSONからデシリアライズされる際にJSONに`price`が含まれている場合には，その値は変換後のオブジェクトに代入されます。
+
+
+##### @JsonbDateFormatによる日付フォーマットの設定
+
+JSON-Bを使用してJavaオブジェクトをシリアライズする際，日付型のフィールドを扱う場合があります。デフォルトのフォーマットでは，ISO 8601形式（例：`2024-10-16T10:15:30Z`）が使用されますが，アプリケーションの要件や外部システムとの連携によって，異なるフォーマットが必要になることがあります。このような場合，`@JsonbDateFormat`アノテーションを使用して，日付のフォーマットを柔軟にカスタマイズすることが可能です。
+
+``` java
+import jakarta.json.bind.annotation.JsonbDateFormat;
+import java.time.LocalDate;
+
+public class Event {
+    private String name;
+
+    @JsonbDateFormat("yyyy/MM/dd")
+    private LocalDate date;
+
+    // コンストラクタ，ゲッター，セッター
+}
+```
+
+上記の例では，`date`フィールドに対して`@JsonbDateFormat`アノテーションを使用し，`yyyy/MM/dd`という形式で日付をシリアライズ・デシリアライズするように指定しています。
+
+この`Event`クラスをJSON-Bでシリアライズすると，出力されるJSONは以下のようになります。
+
+``` json
+{
+    "name": "Conference",
+    "date": "2024/10/16"
+}
+```
+デフォルトのISO形式ではなく，指定したフォーマットで出力されています。
+
+カスタムフォーマットは，`java.text.SimpleDateFormat`の規則に従います。たとえば以下のようなフォーマットを指定できます。
+
+- `"yyyy-MM-dd"`：`2024-10-16`
+- `"MM/dd/yyyy"`：`10/16/2024`
+- `"dd-MM-yyyy HH:mm:ss"`：`16-10-2024 15:30:00`
+
+`@JsonbDateFormat`は，`java.util.Date`，`java.time.LocalDate`，`java.time.LocalDateTime`などのさまざまな日付型に適用可能です。
+
+
+##### @JsonbNumberFormatによる数値フォーマットの設定
+
+`@JsonbNumberFormat`アノテーションは，数値型フィールドのフォーマットをカスタマイズするために使用されます。特定のフォーマットで数値をシリアライズ/デシリアライズする際に便利です。
+
+``` java
+import jakarta.json.bind.annotation.JsonbNumberFormat;
+
+public class Product {
+    private String name;
+
+    @JsonbNumberFormat("#0.00")
+    private double price;
+
+    // コンストラクタ，ゲッター，セッター
+}
+```
+
+この例では，`price`フィールドが小数点以下2桁の形式でシリアライズされるように指定されています。たとえば，価格が5.5の場合，`"price": "5.50"`のようにシリアライズされます。
+
+カスタムフォーマットは，`java.text.DecimalFormat`の規則に従います。
+
+##### その他のカスタマイズアノテーション
+
+`@JsonbNillable`アノテーションは，フィールドが`null`である場合に，そのフィールドをJSONに含めるかどうかを制御します。デフォルトでは，`null`値のフィールドはシリアライズ時に無視されますが，このアノテーションを使用することでnull値を`"null"`として明示的に出力することができます。
+
+``` java
+import jakarta.json.bind.annotation.JsonbNillable;
+
+@JsonbNillable
+public class Product {
+    private String name;
+    private String description;
+
+    // コンストラクタ，ゲッター，セッター
+}
+```
+
+このアノテーションをクラスレベルに適用すると，クラス全体でフィールドが`null`の場合でもJSONに含まれるようになります。
+
+``` json
+{
+    "name": "Laptop",
+    "description": null
+}
+```
+
+Jakarta EE 9.1までは`@JsonbNillable`アノテーションはクラス全体にしか指定できませんでしたが，Jakarta EE 10からはフィールドやセッター/ゲッターにも指定できるようになりました。
+
+`@JsonbCreator`は，デシリアライズ時に使用されるコンストラクタやファクトリーメソッドを指定するためのアノテーションです。通常，JSON-Bはデフォルトコンストラクタを使ってオブジェクトを生成しますが，引数付きのコンストラクタやカスタムメソッドを使用してオブジェクトを生成したい場合に役立ちます。
+
+``` java
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbProperty;
+
+public class Car {
+    private String model;
+    private int year;
+
+    @JsonbCreator
+    public Car(@JsonbProperty("model") String model, @JsonbProperty("year") int year) {
+        this.model = model;
+        this.year = year;
+    }
+
+    // ゲッター
+}
+```
+
+この例では，`@JsonbCreator`を使って，デシリアライズ時に引数付きのコンストラクタを指定しています。`@JsonbProperty`を併用することで，JSONフィールドがどのコンストラクタ引数に対応するかを明示しています。
+
 #### JsonConfigによるカスタマイズ
+
+
 
 #### JAX-RSアプリケーションでのJsonConfigの利用
 
